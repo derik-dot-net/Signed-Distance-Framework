@@ -14,7 +14,6 @@
     {"name":"Signed Distance Framework","order":15,"path":"folders/Signed Distance Framework.yy",},
     {"name":"Batches","order":3,"path":"folders/Signed Distance Framework/Batches.yy",},
     {"name":"Shapes","order":1,"path":"folders/Signed Distance Framework/Shapes.yy",},
-    {"name":"Sounds","order":2,"path":"folders/Sounds.yy",},
     {"name":"Tile Sets","order":1,"path":"folders/Tile Sets.yy",},
     {"name":"Timelines","order":7,"path":"folders/Timelines.yy",},
   ],

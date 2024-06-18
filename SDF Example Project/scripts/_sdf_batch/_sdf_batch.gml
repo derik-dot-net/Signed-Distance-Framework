@@ -8,9 +8,25 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 	
 	// Light Direction
 	light_vector = [-0.25, -0.25, -1];
-		
-	// Combined SDF Data for Shader
-	data_array = [shading, light_vector[0], light_vector[1], light_vector[2]];
+	
+	// Shadows Enabled
+	shadows_enabled = true;
+	
+	// Ambient Occlusion
+	ambient_occlusion_enabled = true;
+	
+	// Anti Aliasing
+	anti_aliasing = 8;
+	
+	// Target Size
+	var target_surf = surface_get_target()
+	target_width = surface_get_width(target_surf);
+	target_height = surface_get_height(target_surf);
+	
+	// Insert Header Data
+	data_array = [	shading, light_vector[0], light_vector[1], light_vector[2], 
+								shadows_enabled, ambient_occlusion_enabled, anti_aliasing,
+								target_width, target_height];
 	
 	// Render SDF Batch
 	static draw = function (_view_mat = matrix_get(matrix_view), _proj_mat = matrix_get(matrix_projection)) {
@@ -25,22 +41,31 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 			// Check if its Data was Updated
 			if _sdf.updated = true {
 					_rebuild_data_array = true;
+					_sdf.updated = false;
 			}
-				
+			
 		}
 		
 		// Rebuild Data Array
 		if _rebuild_data_array {
 			
+			// Target Size
+			var target_surf = surface_get_target()
+			target_width = surface_get_width(target_surf);
+			target_height = surface_get_height(target_surf);
+	
 			// Clear Array 
-			data_array = [shading, light_vector[0], light_vector[1], light_vector[2]];
+			data_array = [	shading, light_vector[0], light_vector[1], light_vector[2], 
+										shadows_enabled, ambient_occlusion_enabled];
+										
+			show_debug_message("updating array" + string(get_timer()))
 			
 			// Loop Through SDFs
 			for (var i = 0; i < array_length(sdf_array); i++) {
 				
 				// Grab SDF
 				var _sdf = sdf_array[i];
-			
+				
 				// Combine Arrays
 				array_push(data_array, array_length(_sdf.data));
 				data_array = array_concat(data_array, _sdf.data);	

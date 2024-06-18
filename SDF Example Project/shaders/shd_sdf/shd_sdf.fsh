@@ -13,13 +13,13 @@ precision highp float;
 #define max_steps 100 
 
 // Max Distance for Raymarcher to check
-#define max_dist 10000. 
+#define max_dist 1000. 
 
 // SDF Array Length
 #define max_array_length 1000
 
 // Header Data Size to Skip in Shape Loop
-#define array_header_size 4
+#define array_header_size 6
 
 #endregion
 #region Varyings
@@ -40,6 +40,8 @@ uniform float sdf_input_array[max_array_length];
 //Grab Render Settings from Array
 int render_style = int(sdf_input_array[0]);
 vec3 light_dir = vec3(sdf_input_array[1], sdf_input_array[2], sdf_input_array[3]);
+int shadows_enabled = int(sdf_input_array[4]);
+int ambient_occlusion_enabled = int(sdf_input_array[5]);
 
 #endregion
 #region Flags
@@ -195,6 +197,11 @@ float op_smooth_sub( float d1, float d2, float k ) {
 float op_smooth_int( float d1, float d2, float k ){
     float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
     return mix( d2, d1, h ) + k*h*(1.0-h);
+}
+
+// Smooth Max 
+float op_smooth_max( float d1, float d2, float k) {
+	return log(exp(k*d1)+exp(k*d2))/k;
 }
 
 #endregion
@@ -577,64 +584,68 @@ float get_dist(vec3 p) {
 			
 			// Entry Value
 			int flag_value = int(sdf_input_array[read_pos]);
-
-			if (flag_value == _sdf_type) { // SDF Type
-				sdf_type = int(sdf_input_array[read_pos + 1]);
-				read_steps = 2;
-			} else if (flag_value == _sdf_intersection) { // Intersection Type
-				intersection_type = int(sdf_input_array[read_pos + 1]);
-				read_steps = 2;
-			} else if (flag_value == _sdf_pos_0) { // Position 0
-				pos_0 = vec3(sdf_input_array[read_pos + 1], 
-										 sdf_input_array[read_pos + 2], 
-										 sdf_input_array[read_pos + 3]);
-				read_steps = 4;
-			} else if (flag_value == _sdf_pos_1) { // Position 1
-				pos_1 = vec3(sdf_input_array[read_pos + 1], 
-										 sdf_input_array[read_pos + 2], 
-										 sdf_input_array[read_pos + 3]);
-				read_steps = 4;
-			} else if (flag_value == _sdf_pos_2) { // Position 2
-				pos_2 = vec3(sdf_input_array[read_pos + 1], 
-										 sdf_input_array[read_pos + 2], 
-										 sdf_input_array[read_pos + 3]);
-				read_steps = 4;
-			} else if (flag_value == _sdf_pos_3) { // Position 3
-				pos_3 = vec3(sdf_input_array[read_pos + 1], 
-										 sdf_input_array[read_pos + 2], 
-										 sdf_input_array[read_pos + 3]);
-				read_steps = 4;
-			} else if (flag_value == _sdf_scale_0) { // Scale 0
-				scale_0 = vec3(sdf_input_array[read_pos + 1], 
-											sdf_input_array[read_pos + 2], 
-											sdf_input_array[read_pos + 3]);
-				read_steps = 4;
-			} else if (flag_value == _sdf_rotation) { // Rotation
-				rotation = vec4(sdf_input_array[read_pos + 1], 
-											  sdf_input_array[read_pos + 2], 
-											  sdf_input_array[read_pos + 3],
-											  sdf_input_array[read_pos + 4]);
-				read_steps = 5;
-			} else if (flag_value == _sdf_float_0) { // Float 0
-				float_0 = sdf_input_array[read_pos + 1];
-				read_steps = 2;
-			} else if (flag_value == _sdf_float_1) { // Float 1
-				float_1 = sdf_input_array[read_pos + 1];
-				read_steps = 2;
-			} else if (flag_value == _sdf_float_2) { // Float 2
-				float_2 = sdf_input_array[read_pos + 1];
-				read_steps = 2;
-			} else if (flag_value == _sdf_float_3) { // Float 3
-				float_3 = sdf_input_array[read_pos + 1];
-				read_steps = 2;
-			} else if (flag_value == _sdf_color_0) { // Color 0
-				color_0 = vec3(sdf_input_array[read_pos + 1], 
-											sdf_input_array[read_pos + 2], 
-											sdf_input_array[read_pos + 3]);
-				read_steps = 4;
-			} else if (flag_value ==  _sdf_smoothing) { // Smoothing
-				smoothing = sdf_input_array[read_pos + 1];
-				read_steps = 2;
+			
+			if (flag_value >= -9) {
+				if (flag_value == _sdf_type) { // SDF Type
+					sdf_type = int(sdf_input_array[read_pos + 1]);
+					read_steps = 2;
+				} else if (flag_value == _sdf_intersection) { // Intersection Type
+					intersection_type = int(sdf_input_array[read_pos + 1]);
+					read_steps = 2;
+				} else if (flag_value == _sdf_pos_0) { // Position 0
+					pos_0 = vec3(sdf_input_array[read_pos + 1], 
+											 sdf_input_array[read_pos + 2], 
+											 sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value == _sdf_pos_1) { // Position 1
+					pos_1 = vec3(sdf_input_array[read_pos + 1], 
+											 sdf_input_array[read_pos + 2], 
+											 sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value == _sdf_pos_2) { // Position 2
+					pos_2 = vec3(sdf_input_array[read_pos + 1], 
+											 sdf_input_array[read_pos + 2], 
+											 sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value == _sdf_pos_3) { // Position 3
+					pos_3 = vec3(sdf_input_array[read_pos + 1], 
+											 sdf_input_array[read_pos + 2], 
+											 sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value == _sdf_scale_0) { // Scale 0
+					scale_0 = vec3(sdf_input_array[read_pos + 1], 
+												sdf_input_array[read_pos + 2], 
+												sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				}
+			} else { 
+				if (flag_value == _sdf_rotation) { // Rotation
+					rotation = vec4(sdf_input_array[read_pos + 1], 
+												  sdf_input_array[read_pos + 2], 
+												  sdf_input_array[read_pos + 3],
+												  sdf_input_array[read_pos + 4]);
+					read_steps = 5;
+				} else if (flag_value == _sdf_float_0) { // Float 0
+					float_0 = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				} else if (flag_value == _sdf_float_1) { // Float 1
+					float_1 = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				} else if (flag_value == _sdf_float_2) { // Float 2
+					float_2 = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				} else if (flag_value == _sdf_float_3) { // Float 3
+					float_3 = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				} else if (flag_value == _sdf_color_0) { // Color 0
+					color_0 = vec3(sdf_input_array[read_pos + 1], 
+												sdf_input_array[read_pos + 2], 
+												sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value ==  _sdf_smoothing) { // Smoothing
+					smoothing = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				}
 			}
 			
 			// Step Forward through Data
@@ -720,6 +731,7 @@ float get_dist(vec3 p) {
 		}
 		
 		min_dist = op_union(min_dist, shape_dist);
+		//min_dist = min(op_smooth_max(min_dist, -shape_dist, 5.0), shape_dist);
 		
 		// Update Blended Color
 		float inv_dist = 1. / (1. + shape_dist);
@@ -795,6 +807,67 @@ vec3 get_normal(vec3 p) {
 }
 
 #endregion
+#region Shadows
+
+// https://iquilezles.org/articles/rmshadows
+float calculate_soft_shadows( in vec3 ro, in vec3 rd, in float mint, in float tmax, int technique )
+{
+	float res = 1.0;
+    float t = mint;
+    float ph = 1e10; // big, such that y = 0 on the first iteration
+    
+    for( int i=0; i<32; i++ )
+    {
+		float h = get_dist( ro + rd*t );
+
+        // traditional technique
+        if( technique==0 )
+        {
+        	res = min( res, 10.0*h/t );
+        }
+        // improved technique
+        else
+        {
+            // use this if you are getting artifact on the first iteration, or unroll the
+            // first iteration out of the loop
+            float y = (i==0) ? 0.0 : h*h/(2.0*ph); 
+
+           // float y = h*h/(2.0*ph);
+            float d = sqrt(h*h-y*y);
+            res = min( res, 14.0*d/max(0.0,t-y) );
+            ph = h;
+        }
+        
+        t += h;
+        
+        if( res<0.0001 || t>tmax ) break;
+        
+    }
+    res = clamp( res, 0.0, 1.0 );
+    return res*res*(3.0-2.0*res);
+}
+
+
+#endregion
+#region Ambient Occlusion
+
+// https://iquilezles.org/articles/nvscene2008/rwwtt.pdf
+float calculate_ao( in vec3 pos, in vec3 nor )
+{
+	float occ = 0.0;
+    float sca = 1.0;
+    for( int i=0; i<5; i++ )
+    {
+        float h = 0.01 + 0.12*float(i)/4.0;
+        float d = get_dist( pos + h*nor );
+        occ += (h-d)*sca;
+        sca *= 0.95;
+        if( occ>0.35 ) break;
+    }
+    return clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y);
+}
+
+#endregion
 #region View & Projection 
 
 // Camera Position
@@ -835,22 +908,34 @@ void main() {
 	// Fragment Position
 	vec3 frag_pos = ro + rd * ray.x;
 	
-	// Frag Color
-	vec3 frag_color = nearest_color;
-	
-	// Set Final Color
-	gl_FragColor = vec4(frag_color, 1.0);
-	
 	// Normalize vectors
 	vec3 l = -light_dir;
 	vec3 n = get_normal(frag_pos);
 	vec3 ref_dir = normalize(reflect(rd, n));
+	
+	// Frag Color
+	vec3 frag_color = nearest_color;
+		
+	// Shadows
+	if (shadows_enabled == 1) {
+		float shadow_str = calculate_soft_shadows(ro + rd*ray.x, l, 0.1, 25.0, 0);
+		frag_color *= shadow_str;
+	}
+	
+	// Ambient Occlusion
+	if (ambient_occlusion_enabled == 1) {
+		float ao_str = calculate_ao(ro + rd*ray.x, n);
+		frag_color *= ao_str;
+	}
+	
+	// Set Final Color
+	gl_FragColor = vec4(frag_color, 1.0);
 
 	// Calculate specular component with pow for shininess
-	vec3 col = vec3(0.5) * pow(max(dot(ref_dir, l), 0.0), 10.0) + frag_color * mix(0.2, 1.2, max(0.0, dot(l, n)));
-
+	//vec3 col = vec3(0.5) * pow(max(dot(ref_dir, l), 0.0), 10.0) + frag_color * mix(0.2, 1.2, max(0.0, dot(l, n)));
+	
 	// Blend the final color based on the ray position and max steps
-	gl_FragColor = mix(vec4(gl_FragColor.rgb * 0.2, 1.0), vec4(col, 1.0), (1.0 - pow(ray.y / float(max_steps), 2.0)));
+	//gl_FragColor = mix(vec4(gl_FragColor.rgb * 0.2, 1.0), vec4(col, 1.0), (1.0 - pow(ray.y / float(max_steps), 2.0)));
 	
 	// Set The Depth of The Fragment
 	#ifdef GL_EXT_frag_depth
