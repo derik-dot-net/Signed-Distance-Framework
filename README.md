@@ -5,6 +5,7 @@ To-do (not in order of priority)
    - Currently can only change color lol.
    - Shapes need to be more than an array, they need to rebuild themselves when updated.
    - ^ We know this cause rewriting the color has issues if the color flag matches another value in the shapes data.
+   - Also all shapes are the same shape struct, I'd prefer to keep it that way, rather than having a unique struct for all of them.
 1. Quaternion Rotation
 2. Post-Shape Creation Scaling
    - Need to think about this.
