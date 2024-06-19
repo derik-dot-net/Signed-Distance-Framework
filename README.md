@@ -1,4 +1,4 @@
-To-do (not in order of priority)
+To-do (not in order of priority):
 1. Optimize Shape Updating
    - Currently updates the entire batch array anytime any shape is updated.
    - Also need to add more functions to shape struct to be able to change more.
