@@ -16,7 +16,7 @@ precision highp float;
 #define max_dist 1000. 
 
 // SDF Array Length
-#define max_array_length 1000
+#define max_array_length 2000
 
 // Header Data Size to Skip in Shape Loop
 #define array_header_size 13
@@ -1007,11 +1007,12 @@ void main() {
 		// Default Shading is just nearest_color + effects so no need for another conditional here.
 		
 		// Toon Shading
-		if (render_style == _sdf_toon_shading) { 
+		//if (render_style == _sdf_toon_shading) { 
+		if (v_vScreenPos.x >= 0.0) { 
 			float average_brightness = (frag_color.r + frag_color.b + frag_color.g) / 3.0;
 			vec3 world_n = normalize(world_mat * vec4(n, 1.0)).xyz;
 			float ndotl = max(dot(world_n, l), 0.);
-			vec2 toon_ramp_uv = vec2(mix(average_brightness, ndotl, 0.5), 0.0);
+			vec2 toon_ramp_uv = vec2(mix(average_brightness, ndotl, 0.6), 0.0);
 			vec3 toon_ramp = texture2D(tex_toonramp, toon_ramp_uv).rgb;
 			float brightness_adjustment = (toon_ramp.r + toon_ramp.b + toon_ramp.g) / 3.0;
 			frag_color = nearest_color * brightness_adjustment;
