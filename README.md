@@ -1,6 +1,6 @@
 To-do (not in order of priority):
 1. Optimize Shape Updating
-   - Currently updates the entire batch array anytime any shape is updated.
+   - Currently updates the entire batch array anytime any shape is updated, caveman Derik must've did that. 
    - Also need to add more functions to shape struct to be able to change more.
    - Currently can only change color lol.
    - Shapes need to be more than an array, they need to rebuild themselves from variables when updated.
