@@ -27,9 +27,8 @@
 #macro _sdf_egg								26
 
 // Shading Types
-#macro sdf_smooth_shading		0
+#macro sdf_default_shading		0
 #macro sdf_toon_shading			1
-#macro sdf_diffuse_shading		2
 
 // Intersection Operations
 #macro op_union							0
@@ -58,7 +57,7 @@
 #macro _sdf_float_2						-13
 #macro _sdf_float_3						-14
 #macro _sdf_color_0						-15
-#macro _sdf_smoothing				-16
+#macro _sdf_blend_str					-16
 
 // Textures
 global._sdf_tex_toonramp	= sprite_get_texture(spr_sdf_toonramp, 0);

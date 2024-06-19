@@ -7,25 +7,26 @@
 precision highp float;
 
 // Minimum Render distance to a SDFs boundry
-#define surf_dist .1
+#define surf_dist .01
 
-// Max Steps for each Fragment of Raymarch
+// Max Steps the raymarcher will do
 #define max_steps 100 
 
-// Max Distance for Raymarcher to check
+// Max Distance for ray marcher to travel
 #define max_dist 1000. 
 
 // SDF Array Length
 #define max_array_length 1000
 
 // Header Data Size to Skip in Shape Loop
-#define array_header_size 6
+#define array_header_size 13
 
 #endregion
 #region Varyings
 
 // Varyings
 varying vec2 v_vScreenPos;
+varying mat4 world_mat;
 
 #endregion
 #region Uniforms
@@ -37,11 +38,19 @@ uniform mat4 proj_mat;
 // Input Array
 uniform float sdf_input_array[max_array_length];
 
-//Grab Render Settings from Array
+// Grab Render Settings from Array
 int render_style = int(sdf_input_array[0]);
 vec3 light_dir = vec3(sdf_input_array[1], sdf_input_array[2], sdf_input_array[3]);
 int shadows_enabled = int(sdf_input_array[4]);
 int ambient_occlusion_enabled = int(sdf_input_array[5]);
+int fog_enabled = int(sdf_input_array[6]);
+vec3 fog_color = vec3(sdf_input_array[7], sdf_input_array[8], sdf_input_array[9]);
+float fog_dist = sdf_input_array[10];
+int debug_enabled = int(sdf_input_array[11]);
+int specular_enabled = int(sdf_input_array[12]);
+
+// Toon Shading texture
+uniform sampler2D tex_toonramp;
 
 #endregion
 #region Flags
@@ -75,9 +84,8 @@ int ambient_occlusion_enabled = int(sdf_input_array[5]);
 #define _sdf_egg								26
 
 // Shading Types
-#define _sdf_smooth_shading	0
+#define _sdf_default_shading		0
 #define _sdf_toon_shading			1
-#define _sdf_diffuse_shading		2
 
 // Intersection Operations
 #define _op_union							0
@@ -145,6 +153,11 @@ vec2 op_revolution(vec3 pos, float revolve_amt) {
 // TODO: 
 // - Extrusion
 
+// Not sure if this feature will come, we only use revolution for the egg shape.
+// Would be cool to expand the list of primitives by having 2D shapes
+// but we would have to require they be used with one of these operations
+// We already have a pretty extensive list of primitives
+
 #endregion
 #region Deform Operations
 
@@ -157,7 +170,7 @@ vec2 op_revolution(vec3 pos, float revolve_amt) {
 // - Bend
 
 #endregion
-#region Intersection Operations
+#region Blending Operations
 
 // Union (Default)
 float op_union( float d1, float d2 ) {
@@ -165,14 +178,12 @@ float op_union( float d1, float d2 ) {
 }
 
 // Subtraction 
-float op_sub( float d1, float d2 )
-{
+float op_sub( float d1, float d2 ) {
     return max(-d1,d2);
 }
 
 // Intersection
-float op_int( float d1, float d2 )
-{
+float op_int( float d1, float d2 ) {
     return max(d1,d2);
 }
 
@@ -199,10 +210,11 @@ float op_smooth_int( float d1, float d2, float k ){
     return mix( d2, d1, h ) + k*h*(1.0-h);
 }
 
-// Smooth Max 
-float op_smooth_max( float d1, float d2, float k) {
-	return log(exp(k*d1)+exp(k*d2))/k;
-}
+// TODO:
+// - Smooth Max
+// - Max
+// - Project Neo Repel
+// - Project Neo Avoid
 
 #endregion
 #region Shape Distance Functions
@@ -568,7 +580,7 @@ float get_dist(vec3 p) {
 		float float_2 = 0.0;
 		float float_3 = 0.0;
 		vec3 color_0 = vec3(0.0, 0.2, 1.0);
-		float smoothing = 0.0;
+		float blend_strength = 0.0;
 		
 		#endregion
 		#region Read Through Entry Data
@@ -643,7 +655,7 @@ float get_dist(vec3 p) {
 												sdf_input_array[read_pos + 3]);
 					read_steps = 4;
 				} else if (flag_value ==  _sdf_smoothing) { // Smoothing
-					smoothing = sdf_input_array[read_pos + 1];
+					blend_strength = sdf_input_array[read_pos + 1];
 					read_steps = 2;
 				}
 			}
@@ -725,13 +737,30 @@ float get_dist(vec3 p) {
 		
 		
 		#endregion
-
+		#region Blend Operation 
+		
+		// Diffuse
 		if (shape_dist < min_dist) {
 			nearest_color = color_0;	 
-		}
+		}	
 		
-		min_dist = op_union(min_dist, shape_dist);
-		//min_dist = min(op_smooth_max(min_dist, -shape_dist, 5.0), shape_dist);
+		if (intersection_type == _op_union) { // Union
+			min_dist = op_union(min_dist, shape_dist);
+		} else if (intersection_type == _op_sub) { // Subtraction
+			min_dist = op_sub(min_dist, shape_dist);	
+		} else if (intersection_type == _op_int) { // Intersection
+			min_dist = op_int(min_dist, shape_dist);	
+		} else if (intersection_type == _op_int) { // Xor
+			min_dist = op_xor(min_dist, shape_dist);	
+		} else if (intersection_type == _op_smooth_union) { // Smooth Union
+			min_dist = op_smooth_union(min_dist, shape_dist, blend_strength);
+		} else if (intersection_type == _op_smooth_sub) { // Smooth Subtraction
+			min_dist = op_smooth_sub(min_dist, shape_dist, blend_strength);
+		} else if (intersection_type == _op_smooth_int) { // Smooth Intersection
+			min_dist = op_smooth_int(min_dist, shape_dist, blend_strength);
+		}
+					
+		#endregion
 		
 		// Update Blended Color
 		float inv_dist = 1. / (1. + shape_dist);
@@ -758,7 +787,7 @@ float get_dist(vec3 p) {
 vec2 ray_march(vec3 ro, vec3 rd) {
 	
 	// Store Total Distance Traveled
-	float d = 0.;
+	float d = 0.0;
 	
 	// Store Total Steps Traveled
 	float steps = float(max_steps);
@@ -768,7 +797,7 @@ vec2 ray_march(vec3 ro, vec3 rd) {
 		
 		// Increment Ray in in the Ray Direction
 		vec3 p = ro + rd * d;
-		
+
 		// Reset Color for Check
 		nearest_color = vec3(0.0, 0.0, 0.0);
 		
@@ -810,24 +839,18 @@ vec3 get_normal(vec3 p) {
 #region Shadows
 
 // https://iquilezles.org/articles/rmshadows
-float calculate_soft_shadows( in vec3 ro, in vec3 rd, in float mint, in float tmax, int technique )
-{
+float calculate_soft_shadows( in vec3 ro, in vec3 rd, in float mint, in float tmax, int technique ) {
 	float res = 1.0;
     float t = mint;
     float ph = 1e10; // big, such that y = 0 on the first iteration
     
-    for( int i=0; i<32; i++ )
-    {
+    for( int i=0; i<32; i++ ) {
 		float h = get_dist( ro + rd*t );
 
         // traditional technique
-        if( technique==0 )
-        {
+        if( technique==0 ) {
         	res = min( res, 10.0*h/t );
-        }
-        // improved technique
-        else
-        {
+        } else {  // improved technique
             // use this if you are getting artifact on the first iteration, or unroll the
             // first iteration out of the loop
             float y = (i==0) ? 0.0 : h*h/(2.0*ph); 
@@ -852,20 +875,27 @@ float calculate_soft_shadows( in vec3 ro, in vec3 rd, in float mint, in float tm
 #region Ambient Occlusion
 
 // https://iquilezles.org/articles/nvscene2008/rwwtt.pdf
-float calculate_ao( in vec3 pos, in vec3 nor )
-{
+float calculate_ao( in vec3 pos, in vec3 nor ) {
 	float occ = 0.0;
     float sca = 1.0;
-    for( int i=0; i<5; i++ )
-    {
+    for( int i=0; i<5; i++ ) {
         float h = 0.01 + 0.12*float(i)/4.0;
-        float d = get_dist( pos + h*nor );
-        occ += (h-d)*sca;
+        float d = get_dist( pos + h * nor );
+        occ += (h - d)*sca;
         sca *= 0.95;
-        if( occ>0.35 ) break;
+        if( occ > 0.35 ) break;
     }
     return clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y);
 }
+
+#endregion
+#region Fog
+
+vec3 apply_fog(vec3 col, float dist) {
+    float fog_amount = 1.0 - exp(-(dist-8.0) * (1.0/fog_dist));
+    return mix(col, fog_color, fog_amount);
+}
+
 
 #endregion
 #region View & Projection 
@@ -881,6 +911,20 @@ mat4 view_proj = proj_mat * view_mat;
 
 // View Z Position
 vec4 view_z = vec4(view_mat[0].z, view_mat[1].z, view_mat[2].z, view_mat[3].z);
+
+#endregion
+#region Debug
+
+vec3 shade_steps(int n) {
+    const vec3 a = vec3(97, 130, 234) / vec3(255.0);
+    const vec3 b = vec3(220, 94, 75) / vec3(255.0);
+    const vec3 c = vec3(221, 220, 219) / vec3(255.0);
+    float t = float(n) / float(max_steps);   
+    if (t < 0.5)
+        return mix(a, c, 2.0 * t);
+    else
+        return mix(c, b, 2.0 * t - 1.0);
+}
 
 #endregion
 #region Main
@@ -908,40 +952,86 @@ void main() {
 	// Fragment Position
 	vec3 frag_pos = ro + rd * ray.x;
 	
-	// Normalize vectors
+	// Vectors
 	vec3 l = -light_dir;
 	vec3 n = get_normal(frag_pos);
 	vec3 ref_dir = normalize(reflect(rd, n));
 	
 	// Frag Color
 	vec3 frag_color = nearest_color;
-		
+	
+	// Gamma Correction
+	frag_color	= pow(frag_color, vec3(0.4545));
+	
+	#region Effects
+	
+	// We want to apply effects even with debug enabled because the debug mode
+	// should reflect the extra steps taken with effects enabled
+	
 	// Shadows
 	if (shadows_enabled == 1) {
-		float shadow_str = calculate_soft_shadows(ro + rd*ray.x, l, 0.1, 25.0, 0);
+		float shadow_str = calculate_soft_shadows(ro + rd * ray.x, l, 0.1, 25.0, 0);
 		frag_color *= shadow_str;
 	}
 	
 	// Ambient Occlusion
 	if (ambient_occlusion_enabled == 1) {
-		float ao_str = calculate_ao(ro + rd*ray.x, n);
-		frag_color *= ao_str;
+		float ao_str = calculate_ao(ro + rd * ray.x, n);
+		frag_color = mix(frag_color, frag_color * ao_str, 0.5);
 	}
 	
-	// Set Final Color
-	gl_FragColor = vec4(frag_color, 1.0);
-
-	// Calculate specular component with pow for shininess
-	//vec3 col = vec3(0.5) * pow(max(dot(ref_dir, l), 0.0), 10.0) + frag_color * mix(0.2, 1.2, max(0.0, dot(l, n)));
+	// Fog
+	if (fog_enabled == 1) {
+		frag_color = apply_fog(frag_color, ray.x);
+	}
 	
-	// Blend the final color based on the ray position and max steps
-	//gl_FragColor = mix(vec4(gl_FragColor.rgb * 0.2, 1.0), vec4(col, 1.0), (1.0 - pow(ray.y / float(max_steps), 2.0)));
+	// Specular
+	if (specular_enabled == 1)  {
+				 
+		// Calculate specular component with pow for shininess
+		vec3 specular = vec3(0.5) * pow(max(dot(ref_dir, l), 0.0), 10.0) + frag_color * mix(0.2, 1.2, max(0.0, dot(l, n)));
+	
+		// Blend the final color based on the ray position and max steps
+		frag_color = mix(frag_color * 0.2, specular, (1.0 - pow(ray.y / float(max_steps), 2.0)));
+		
+	}
+	
+	#endregion
+	#region Render Style
+	
+	// Set color based on the amount of steps taking by the ray
+	if (debug_enabled == 1) {
+		frag_color = shade_steps(int(ray.y));
+	} else {
+			
+		// Default Shading is just nearest_color + effects so no need for another conditional here.
+		
+		// Toon Shading
+		if (render_style == _sdf_toon_shading) { 
+			float average_brightness = (frag_color.r + frag_color.b + frag_color.g) / 3.0;
+			vec3 world_n = normalize(world_mat * vec4(n, 1.0)).xyz;
+			float ndotl = max(dot(world_n, l), 0.);
+			vec2 toon_ramp_uv = vec2(mix(average_brightness, ndotl, 0.5), 0.0);
+			vec3 toon_ramp = texture2D(tex_toonramp, toon_ramp_uv).rgb;
+			float brightness_adjustment = (toon_ramp.r + toon_ramp.b + toon_ramp.g) / 3.0;
+			frag_color = nearest_color * brightness_adjustment;
+		}
+		
+	}
+	
+	// Set Fragment Color
+	gl_FragColor = vec4(frag_color, 1.0);
+	
+	#endregion
+	#region Depth
 	
 	// Set The Depth of The Fragment
 	#ifdef GL_EXT_frag_depth
 		vec4 P = view_proj * vec4(frag_pos, 1.);
 		gl_FragDepthEXT = P.z / P.w;	
 	#endif
+	
+	#endregion
 	
 }
 

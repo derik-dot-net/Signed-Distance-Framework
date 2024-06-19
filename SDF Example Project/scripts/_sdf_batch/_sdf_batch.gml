@@ -10,26 +10,30 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 	light_vector = [-0.25, -0.25, -1];
 	
 	// Shadows Enabled
-	shadows_enabled = true;
+	shadows_enabled = false;
 	
 	// Ambient Occlusion
-	ambient_occlusion_enabled = true;
+	ambient_occlusion_enabled = false;
 	
-	// Anti Aliasing
-	anti_aliasing = 8;
+	// Fog
+	fog_enabled = false;
+	fog_color = [0, 0, 0];
+	fog_distance = 1000;
 	
-	// Target Size
-	var target_surf = surface_get_target()
-	target_width = surface_get_width(target_surf);
-	target_height = surface_get_height(target_surf);
+	// Specular Reflections
+	specular_enabled = false;
+	
+	// Debug Mode
+	debug_enabled = false;
 	
 	// Insert Header Data
 	data_array = [	shading, light_vector[0], light_vector[1], light_vector[2], 
-								shadows_enabled, ambient_occlusion_enabled, anti_aliasing,
-								target_width, target_height];
+								shadows_enabled, ambient_occlusion_enabled, fog_enabled,
+								fog_color[0], fog_color[1], fog_color[2], fog_distance, 
+								debug_enabled, specular_enabled];
 	
 	// Render SDF Batch
-	static draw = function (_view_mat = matrix_get(matrix_view), _proj_mat = matrix_get(matrix_projection)) {
+	static draw = function(_view_mat = matrix_get(matrix_view), _proj_mat = matrix_get(matrix_projection)) {
 		
 		// Checks SDFs in Batch for Updates
 		var _rebuild_data_array = false;
@@ -56,7 +60,9 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 	
 			// Clear Array 
 			data_array = [	shading, light_vector[0], light_vector[1], light_vector[2], 
-										shadows_enabled, ambient_occlusion_enabled];
+										shadows_enabled, ambient_occlusion_enabled, fog_enabled,
+										fog_color[0], fog_color[1], fog_color[2], fog_distance, 
+										debug_enabled];
 										
 			show_debug_message("updating array" + string(get_timer()))
 			
@@ -109,8 +115,40 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 	}
 	
 	// Add SDF to Batch
-	static add = function (_sdf) {
+	static add = function(_sdf) {
 		array_push(sdf_array, _sdf);
+	}
+	
+	// Shadows
+	static shadows = function(_enabled) {
+		shadows_enabled = _enabled;
+	}
+		
+	// Ambient Occlusion
+	static ambient_occlusion = function(_enabled) {
+		ambient_occlusion_enabled = _enabled;
+	}
+	
+	// Fog
+	static fog = function(_enabled, _dist, _r, _g, _b, _linear) {
+		fog_enabled = _enabled;
+		fog_color = _linear ? [_r, _g, _b] : [_r / 255, _g / 255, _b / 255];
+		fog_distance = _dist;
+	}
+	
+	// Specular Reflection
+	static specular = function(_enabled) {
+		specular_enabled	= _enabled;
+	}
+	
+	// Light Vector
+	static light_direction = function(_x, _y, _z) {
+		light_vector = [_x, _y, _z];	
+	}
+	
+	// Debug
+	static debug = function(_enabled) {
+		debug_enabled = _enabled;	
 	}
 	
 }

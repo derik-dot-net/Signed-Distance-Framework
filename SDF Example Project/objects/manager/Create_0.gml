@@ -38,7 +38,7 @@ view_mat = matrix_build_lookat(cam_x, cam_y, cam_z, target_x, target_y, target_z
 fov = 60;
 aspect = window_get_width() / window_get_height();
 znear = 1.0;
-zfar = 32000.0;
+zfar = 1000.0;
 
 //Projection Matrix
 proj_mat = matrix_build_projection_perspective_fov(fov, aspect, znear, zfar);
@@ -49,12 +49,19 @@ proj_mat = matrix_build_projection_perspective_fov(fov, aspect, znear, zfar);
 // I've setup my Example Scene to be a simplified recreation of https://www.shadertoy.com/view/Xds3zN
 // with a few additional bits to help show off the systems capabilities
 
-//Decide our Shading Type
-sdf_style = sdf_smooth_shading
-// Other Options are: sdf_toon_shading and sdf_diffuse_shading
+// Decide our Shading Type
+sdf_style = sdf_toon_shading;
+// The other option is sdf_toon_shading
 
 // Create a Batch to Store our Shapes in
 sdf_batch = sdf_create_batch(sdf_style);
+
+// Render Settings
+sdf_batch.fog(true, zfar * 0.75, 0, 0, 0);
+sdf_batch.shadows(true);
+sdf_batch.ambient_occlusion(true);
+sdf_batch.specular(true);
+//sdf_batch.debug(true);
 
 // Plane
 var plane = sdf_plane(0, 0, -10, 0, 0, 1, 1);
