@@ -50,7 +50,7 @@ proj_mat = matrix_build_projection_perspective_fov(fov, aspect, znear, zfar);
 // with a few additional bits to help show off the systems capabilities
 
 // Decide our Shading Type
-sdf_style = sdf_toon_shading;
+sdf_style = sdf_default_shading;
 // The other option is sdf_toon_shading
 
 // Create a Batch to Store our Shapes in

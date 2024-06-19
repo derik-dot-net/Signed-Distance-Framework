@@ -1007,8 +1007,8 @@ void main() {
 		// Default Shading is just nearest_color + effects so no need for another conditional here.
 		
 		// Toon Shading
-		//if (render_style == _sdf_toon_shading) { 
-		if (v_vScreenPos.x >= 0.0) { 
+		if (render_style == _sdf_toon_shading) { 
+		//if (v_vScreenPos.x >= 0.0) { 
 			float average_brightness = (frag_color.r + frag_color.b + frag_color.g) / 3.0;
 			vec3 world_n = normalize(world_mat * vec4(n, 1.0)).xyz;
 			float ndotl = max(dot(world_n, l), 0.);
