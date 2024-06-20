@@ -1,50 +1,203 @@
-function _sdf_shape(_array) constructor {
+function _sdf_shape() constructor {
+		
+	#region (Internal)
 	
 	// Data for this SDF
-	data = _array;
-	updated = true;
+	_data = undefined;	
 	
-	// if the user tries to use a function not related to the shape
-	// throw an error, like setting the radius of a cube or plane for example
+	// Shape Data
+	_type = undefined;
+	_blending = undefined;
+	_pos_0 = undefined;
+	_pos_1 = undefined;
+	_pos_2 = undefined;
+	_pos_3 = undefined;
+	_scale_0 = undefined;
+	_rotation = undefined;
+	_float_0 = undefined;
+	_float_1 = undefined;
+	_float_2 = undefined;
+	_float_3 = undefined;
+	_color_0 = undefined;
+	_blend_str = undefined;
+	_batch = undefined;
+	_index_in_batch = undefined;
+	_index_in_batch_data = undefined;
 	
-	// Color
-	static rgb = function (_r, _g, _b, _linear = false) {
-		
-		// Delete Old Color Entry
-		for (var i = 0; i < array_length(data); i++) {
-			if data[i] = _sdf_color_0 {
-				array_delete(data, i, 4);
-			}
-		}
-		
-		// Add New Data
-		if _linear {
-			array_push(data, _sdf_color_0, _r, _g, _b);
-		} else {
-			array_push(data, _sdf_color_0, _r / 255, _g / 255, _b / 255);
-		}
-		
-		//Set Updated
-		updated = true;
+	// Local Index for Shape Data
+	_li_type = undefined;
+	_li_blending = undefined;
+	_li_pos_0 = undefined;
+	_li_pos_1 = undefined;
+	_li_pos_2 = undefined;
+	_li_pos_3 = undefined;
+	_li_scale_0 = undefined;
+	_li_rotation = undefined;
+	_li_float_0 = undefined;
+	_li_float_1 = undefined;
+	_li_float_2 = undefined;
+	_li_float_3 = undefined;
+	_li_color_0 = undefined;
+	_li_blend_str = undefined;
 	
+	// Batch Indexes for Shape Data
+	_bi_type = undefined;
+	_bi_blending = undefined;
+	_bi_pos_0 = undefined;
+	_bi_pos_1 = undefined;
+	_bi_pos_2 = undefined;
+	_bi_pos_3 = undefined;
+	_bi_scale_0 = undefined;
+	_bi_rotation = undefined;
+	_bi_float_0 = undefined;
+	_bi_float_1 = undefined;
+	_bi_float_2 = undefined;
+	_bi_float_3 = undefined;
+	_bi_color_0 = undefined;
+	_bi_blend_str = undefined;
+	
+	// Trying to set a data type using an internal function in a way that isn't applicable
+	_not_applicable_error = function() {
+		var _error_str = "You're trying to set a data type that the shape does not use or contain, and/or does not have as an applicable modifier.";
+		show_debug_message(_sdf_error_tag_str + _error_str);
 	}
 	
-	// Intersection Type
-	static intersection = function(_operation) {
-		
-		// Delete Old Intersection Entry
-		for (var i = 0; i < array_length(data); i++) {
-			if data[i] = _sdf_intersection {
-				array_delete(data, i, 2);
-			}
+	// Data Setters
+	_set_pos = function(_index, _x, _y, _z) {
+		switch(_index) {
+			case 0:
+				if _pos_0 = undefined {_not_applicable_error(); break;}
+				if _batch != undefined {
+					_batch._data[_bi_pos_0 + 1] = _x;
+					_batch._data[_bi_pos_0 + 2] = _y;
+					_batch._data[_bi_pos_0 + 3] = _z;
+				}
+				_pos_0 = [_x, _y, _z];
+				_data[_li_pos_0 + 1] = _x;
+				_data[_li_pos_0 + 2] = _y;
+				_data[_li_pos_0 + 3] = _z;
+			break;
+			case 1:
+				if _pos_1 = undefined {_not_applicable_error(); break;}
+				if _batch != undefined {
+					_batch._data[_bi_pos_1 + 1] = _x;
+					_batch._data[_bi_pos_1 + 2] = _y;
+					_batch._data[_bi_pos_1 + 3] = _z;
+				}
+				_pos_1 = [_x, _y, _z];
+				_data[_li_pos_1 + 1] = _x;
+				_data[_li_pos_1 + 2] = _y;
+				_data[_li_pos_1 + 3] = _z;
+			break;
+			case 2:
+				if _pos_2 = undefined {_not_applicable_error(); break;}
+				if _batch != undefined {
+					_batch._data[_bi_pos_2 + 1] = _x;
+					_batch._data[_bi_pos_2 + 2] = _y;
+					_batch._data[_bi_pos_2 + 3] = _z;
+				}
+				_pos_2 = [_x, _y, _z];
+				_data[_li_pos_2 + 1] = _x;
+				_data[_li_pos_2 + 2] = _y;
+				_data[_li_pos_2 + 3] = _z;
+			break;
+			case 3:
+				if _pos_3 = undefined {_not_applicable_error(); break;}
+				if _batch != undefined {
+					_batch._data[_bi_pos_3 + 1] = _x;
+					_batch._data[_bi_pos_3 + 2] = _y;
+					_batch._data[_bi_pos_3 + 3] = _z;
+				}
+				_pos_3 = [_x, _y, _z];
+				_data[_li_pos_3 + 1] = _x;
+				_data[_li_pos_3 + 2] = _y;
+				_data[_li_pos_3 + 3] = _z;
+			break;
 		}
-		
-		// Add New Data
-		array_push(data, _sdf_intersection, _operation);
-		
-		//Set Updated
-		updated = true;
-		
 	}
+	_set_rotation = function(_x, _y, _z, _w) {
+		if _batch != undefined {
+			_batch._data[_bi_rotation + 1] = _x;
+			_batch._data[_bi_rotation + 2] = _y;
+			_batch._data[_bi_rotation + 3] = _z;
+			_batch._data[_bi_rotation + 3] = _w;
+		}
+		_rotation = [_x, _y, _z, _w];		
+		_data[_li_rotation + 1] = _x;
+		_data[_li_rotation + 2] = _y;
+		_data[_li_rotation + 3] = _z;
+		_data[_li_rotation + 4] = _w;
+	}
+	_set_float = function(_index, _f) {
+		switch(_index) {
+			case 0:
+				if _float_0 = undefined {_not_applicable_error(); break;}
+				if _batch != undefined {_batch._data[_bi_float_0 + 1] = _f;}
+				_float_0 = _f;
+				_data[_li_float_0 + 1] = _f;
+			break;
+			case 1:
+				if _float_1 = undefined {_not_applicable_error(); break;}
+				if _batch != undefined {_batch._data[_bi_float_1 + 1] = _f;}
+				_float_1 = _f;
+				_data[_li_float_1+ 1] = _f;
+			break;
+			case 2:
+				if _float_2 = undefined {_not_applicable_error(); break;}
+				if _batch != undefined {_batch._data[_bi_float_2 + 1] = _f;}
+				_float_2 = _f;
+				_data[_li_float_2+ 1] = _f;
+			break;
+			case 3:
+				if _float_3 = undefined {_not_applicable_error(); break;}
+				if _batch != undefined {_batch._data[_bi_float_3 + 1] = _f;}
+				_float_3 = _f;
+				_data[_li_float_3+ 1] = _f;
+			break;
+		}
+	}
+	_set_color = function(_r, _g, _b, _linear) {
+		_color_0 = linear ? [_r, _g, _b] : [_r / 255, _g / 255, b / 255];
+		if _batch != undefined {
+			_batch._data[_bi_color_0 + 1] = _color_0[0];
+			_batch._data[_bi_color_0 + 2] = _color_0[1];
+			_batch._data[_bi_color_0 + 3] = _color_0[2];
+		}
+		_data[_li_color_0 + 1] = _color_0[0];
+		_data[_li_color_0 + 2] = _color_0[1];
+		_data[_li_color_0 + 3] = _color_0[2];
+		_data[_li_color_0 + 4] = _color_0[3];
+	}
+	_set_blend_str = function(_f) {
+		if _batch != undefined {_batch._data[_bi_blend_str + 1] = _f;}
+		_blend_str = _f;	
+		_data[_li_blend_str + 1] = _f;
+	}
+	_set_blending_type = function(_f) {
+		if _batch != undefined {_batch._data[_bi_blending + 1] = _f;}
+		_blending = 	_f;
+		_data[_li_blending + 1] = _f;
+	}
+	
+	#endregion
+	#region Common Functions
+	
+	// Set a custom color for your shape
+	color = function(_r, _g, _b, _linear) {
+		_set_color(_r, _g, _b, _linear);
+	}
+		
+	// Set the blending operation used by the shape 
+	blending_type = function(_type) {
+		_set_blending_type(_type);	
+	}
+	
+	// Set the blending strength used by the shape
+	blending_strength = function(_strength) {
+		_set_blend_str(_strength);
+	}
+	
+	#endregion 
 	
 }
+	

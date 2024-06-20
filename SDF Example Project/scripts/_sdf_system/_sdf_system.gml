@@ -30,7 +30,7 @@
 #macro sdf_default_shading		0
 #macro sdf_toon_shading			1
 
-// Intersection Operations
+// Blending Operations
 #macro op_union							0
 #macro op_sub								1
 #macro op_int								2
@@ -58,6 +58,8 @@
 #macro _sdf_float_3						-14
 #macro _sdf_color_0						-15
 #macro _sdf_blend_str					-16
+
+#macro _sdf_error_tag_str	"SDF ERROR: "
 
 // Textures
 global._sdf_tex_toonramp	= sprite_get_texture(spr_sdf_toonramp, 0);

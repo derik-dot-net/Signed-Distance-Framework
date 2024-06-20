@@ -73,16 +73,17 @@ return [color_get_red(rainbow), color_get_green(rainbow), color_get_blue(rainbow
 }
 
 // Plane
-plane = sdf_plane(0, 0, -10, 0, 0, 1, 1);
-plane.rgb(0.8, 0.8, 0.8, true);
-sdf_batch.add(plane);
+//plane = sdf_plane(0, 0, -10, 0, 0, 1, 1);
+//plane.rgb(0.8, 0.8, 0.8, true);
+//sdf_batch.add(plane);
 
 // Sphere
 sphere = sdf_sphere(-40, 0, 0, 5);
-var col = c_rainbow(5, 10);
-sphere.rgb(col[0], col[1], col[2]);
+//var col = c_rainbow(5, 10);
+//sphere.rgb(col[0], col[1], col[2]);
 sdf_batch.add(sphere);
 
+/*
 // Box
 box = sdf_box(-20, 0, 0, 5, 5, 5);
 var col = c_rainbow(5, 20);
@@ -226,5 +227,5 @@ egg = sdf_egg(40, -40, 0, 5, 5, 2.25);
 var col = c_rainbow(5, 240);
 egg.rgb(col[0], col[1], col[2]);
 sdf_batch.add(egg);
-
+*/
 #endregion

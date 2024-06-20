@@ -2,7 +2,7 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 	
 	// SDFs to Pull Data From
 	sdf_array = [];
-	
+
 	// Shading Style
 	shading = shading_type;
 	
@@ -27,28 +27,30 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 	debug_enabled = false;
 	
 	// Insert Header Data
-	data_array = [	shading, light_vector[0], light_vector[1], light_vector[2], 
+	_data =			[	shading, light_vector[0], light_vector[1], light_vector[2], 
 								shadows_enabled, ambient_occlusion_enabled, fog_enabled,
 								fog_color[0], fog_color[1], fog_color[2], fog_distance, 
 								debug_enabled, specular_enabled];
 	
+	_rebuild_data_array = false;
+	
 	// Render SDF Batch
 	static draw = function(_view_mat = matrix_get(matrix_view), _proj_mat = matrix_get(matrix_projection)) {
 		
-		// Checks SDFs in Batch for Updates
-		var _rebuild_data_array = false;
+		/*
 		for (var i = 0; i < array_length(sdf_array); i++) {
 			
 			// Grab SDF
 			var _sdf = sdf_array[i];
 			
 			// Check if its Data was Updated
-			if _sdf.updated = true {
+			if _sdf._updated = true {
 					_rebuild_data_array = true;
-					_sdf.updated = false;
+					_sdf._updated = false;
 			}
 			
 		}
+		*/
 		
 		// Rebuild Data Array
 		if _rebuild_data_array {
@@ -59,12 +61,11 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 			target_height = surface_get_height(target_surf);
 	
 			// Clear Array 
-			data_array = [	shading, light_vector[0], light_vector[1], light_vector[2], 
-										shadows_enabled, ambient_occlusion_enabled, fog_enabled,
-										fog_color[0], fog_color[1], fog_color[2], fog_distance, 
-										debug_enabled, specular_enabled];
-										
-			show_debug_message("updating array" + string(get_timer()))
+			_data = [	shading, light_vector[0], light_vector[1], light_vector[2], 
+								shadows_enabled, ambient_occlusion_enabled, fog_enabled,
+								fog_color[0], fog_color[1], fog_color[2], fog_distance, 
+								debug_enabled, specular_enabled];					
+			//show_debug_message("updating array" + string(get_timer()))
 			
 			// Loop Through SDFs
 			for (var i = 0; i < array_length(sdf_array); i++) {
@@ -72,11 +73,14 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 				// Grab SDF
 				var _sdf = sdf_array[i];
 				
+				var _sdf_data = _sdf._data;
+				
 				// Combine Arrays
-				array_push(data_array, array_length(_sdf.data));
-				data_array = array_concat(data_array, _sdf.data);	
+				array_push(_data, array_length(_sdf_data));
+				_data = array_concat(_data, _sdf_data);	
 				
 			}
+			_rebuild_data_array = false;
 			
 		}
 		
@@ -88,13 +92,14 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 		shader_set_uniform_f_array(global._u_sdf_proj_mat, _proj_mat);
 		
 		// Add Flag to End of Array
-		array_push(data_array, _sdf_array_end_flag);
+		array_push(_data, _sdf_array_end_flag);
 		
+					show_debug_message(_data)		
 		// Pass in Input Array
-		shader_set_uniform_f_array(global._u_sdf_input_array, data_array);
+		shader_set_uniform_f_array(global._u_sdf_input_array, _data);
 		
 		// Remove Flag From End of Array
-		array_pop(data_array);
+		array_pop(_data);
 		
 		// Pass in Toon Shading Ramp Texture
 		if shading = sdf_toon_shading { 
@@ -116,7 +121,12 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 	
 	// Add SDF to Batch
 	static add = function(_sdf) {
+		_sdf._index_in_batch = array_length(sdf_array);
+		_sdf._index_in_batch_data = array_length(_data);
 		array_push(sdf_array, _sdf);
+		_sdf._batch = self;
+		_sdf._update_batch_indexes();
+		_rebuild_data_array = true;
 	}
 	
 	// Shadows
