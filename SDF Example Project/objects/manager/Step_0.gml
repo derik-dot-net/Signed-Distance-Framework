@@ -18,10 +18,7 @@ proj_mat = matrix_build_projection_perspective_fov(fov, aspect, znear, zfar);
 #endregion
 #region Shape Updates
 
-//sphere.position(-sin(current_time/1000) * 40, -cos(current_time/1000) * 40, 0);
-//sphere.radius(7.5 + (sin(current_time/500) * 2.5));
-//var col = c_rainbow(100000, 10);
-//sphere.color(col[0], col[1], col[2]);
-//show_debug_message(sphere._data);
+sphere.position(-sin(current_time/1000) * 40, -cos(current_time/1000) * 40, 0);
+sphere.radius(7.5 + (sin(current_time/500) * 2.5));
 
 #endregion

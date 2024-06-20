@@ -214,11 +214,13 @@ function _sdf_shape() constructor {
 		_data[_li_color_0 + 3] = _color_0[2];
 	}
 	_set_blend_str = function(_f) {
+		if _blend_str = undefined {_create_modifer_index(_sdf_blend_str);}
 		if _batch != undefined {_batch._data[_bi_blend_str + 1] = _f;}
 		_blend_str = _f;	
 		_data[_li_blend_str + 1] = _f;
 	}
 	_set_blending_type = function(_f) {
+		if _blending = undefined {_create_modifer_index(_sdf_blending);}
 		if _batch != undefined {_batch._data[_bi_blending + 1] = _f;}
 		_blending = 	_f;
 		_data[_li_blending + 1] = _f;
@@ -257,4 +259,3 @@ function _sdf_shape() constructor {
 	#endregion 
 	
 }
-	

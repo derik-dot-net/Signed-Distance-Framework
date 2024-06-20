@@ -130,13 +130,13 @@ rounded_cone = sdf_round_cone(20, -15, 0, 20, -25, 0, 5, 1);
 var col = c_rainbow(5, 80);
 rounded_cone.color(col[0], col[1], col[2]);
 sdf_batch.add(rounded_cone);
-
+/*
 // Hex Prism
 hex_prism = sdf_hex_prism(40, -20, 0, 5, 5);
 var col = c_rainbow(5, 90);
 hex_prism.rgb(col[0], col[1], col[2]);
 sdf_batch.add(hex_prism);
-/*
+
 // Tri Prism
 tri_prism = sdf_triangle_prism(-40, 20, 5, 5);
 var col = c_rainbow(5, 100);
