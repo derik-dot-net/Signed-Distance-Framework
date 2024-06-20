@@ -25,3 +25,8 @@ To-do (not in order of priority):
    - Test for most optimal configurations of conditional branching nests.
    - For debug mode use a steps counter that includes steps taking in the effect functions.
 8. Anti-Aliasing
+9. Editor
+   - Nommin's Dear ImGUI 
+   - ColMesh with bounding box selection
+   - Can use my GM File Association to export a custom file, or alternatively just a buffer or set of array values for copy and paste.
+   - Can be loaded using something like var loaded_file = sdf_load(_file_Path);
