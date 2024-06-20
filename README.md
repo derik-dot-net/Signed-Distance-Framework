@@ -31,3 +31,4 @@ To-do (not in order of priority):
    - ColMesh with bounding box selection
    - Can use my GM File Association to export a custom file, or alternatively just a buffer or set of array values for copy and paste.
    - Can be loaded using something like var loaded_file = sdf_load(_file_Path);
+9. Make the github page look nice
