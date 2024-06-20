@@ -63,7 +63,7 @@ sdf_batch.ambient_occlusion(true);
 sdf_batch.specular(true);
 //sdf_batch.debug(true);
 
-// Just a smal function for random colors
+// Just a small function for random colors
 function c_rainbow (divider, _offset = 0) {
 
 var rainbow = make_color_hsv((get_timer() + _offset / divider) mod 255,255,255);
@@ -79,22 +79,23 @@ return [color_get_red(rainbow), color_get_green(rainbow), color_get_blue(rainbow
 
 // Sphere
 sphere = sdf_sphere(-40, 0, 0, 5);
-//var col = c_rainbow(5, 10);
-//sphere.rgb(col[0], col[1], col[2]);
+var col = c_rainbow(5, 10);
+sphere.color(col[0], col[1], col[2]);
 sdf_batch.add(sphere);
 
-/*
 // Box
 box = sdf_box(-20, 0, 0, 5, 5, 5);
 var col = c_rainbow(5, 20);
-box.rgb(col[0], col[1], col[2]);
+box.color(col[0], col[1], col[2]);
 sdf_batch.add(box);
 
-// Round
+// Round Box
 round_box = sdf_round_box(0, 0, 0, 5, 5, 5, 2.5);
 var col = c_rainbow(5, 30);
-round_box.rgb(col[0], col[1], col[2]);
+round_box.color(col[0], col[1], col[2]);
 sdf_batch.add(round_box);
+
+/*
 
 // Box Frame
 box_frame = sdf_box_frame(20, 0, 0, 5, 5, 5, 1);

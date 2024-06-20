@@ -62,7 +62,52 @@ function _sdf_shape() constructor {
 		show_debug_message(_sdf_error_tag_str + _error_str);
 	}
 	
-	// Data Setters
+	// Modifer Local and Batch Indices
+	_create_modifer_index = function(_mode) {
+		var _new_index = array_length(_data);
+		switch(_mode) {
+			case _sdf_color_0:
+				array_push(_data, _sdf_color_0)
+				_li_color_0 = _new_index;
+				if _batch != undefined {
+					_bi_color_0 =  _index_in_batch_data + _li_color_0 + 1;
+					array_insert(_batch._data, _bi_color_0, _sdf_color_0, 0, 0, 0); 
+					_batch._rebuild_data_array();
+				}
+			break;	
+			case _sdf_blending:
+				array_push(_data, _sdf_blending)
+				_li_blending = _new_index;
+				if _batch != undefined {
+					_bi_blending = _index_in_batch_data + _li_blending + 1;
+					array_insert(_batch._data, _bi_blending, _sdf_blending, 0);
+					_batch._rebuild_data_array();
+				}
+			break;	
+			case _sdf_blend_str:
+				array_push(_data, _sdf_blend_str)
+				_li_blend_str = _new_index;
+				if _batch != undefined {
+					_bi_blend_str = _index_in_batch_data + _li_blend_str + 1;
+					array_insert(_batch._data, _bi_blend_str, _sdf_blend_str, 0);
+					_batch._rebuild_data_array();
+				}
+			break;	
+		}
+	}	
+	_update_modifer_indices = function() {
+		if _li_color_0 != undefined {
+			_bi_color_0 =  _index_in_batch_data + _li_color_0 + 1;
+		}
+		if _li_blending != undefined {
+			_bi_blending = _index_in_batch_data + _li_blending + 1;
+		}
+		if _li_blend_str != undefined {
+			_bi_blend_str = _index_in_batch_data + _li_blend_str + 1;
+		}
+	}
+		
+	// Data Setters (Handles Local and Batch Updates)
 	_set_pos = function(_index, _x, _y, _z) {
 		switch(_index) {
 			case 0:
@@ -157,7 +202,8 @@ function _sdf_shape() constructor {
 		}
 	}
 	_set_color = function(_r, _g, _b, _linear) {
-		_color_0 = linear ? [_r, _g, _b] : [_r / 255, _g / 255, b / 255];
+		if _color_0 = undefined {_create_modifer_index(_sdf_color_0);}
+		_color_0 = _linear ? [_r, _g, _b] : [_r / 255, _g / 255, _b / 255];
 		if _batch != undefined {
 			_batch._data[_bi_color_0 + 1] = _color_0[0];
 			_batch._data[_bi_color_0 + 2] = _color_0[1];
@@ -166,7 +212,6 @@ function _sdf_shape() constructor {
 		_data[_li_color_0 + 1] = _color_0[0];
 		_data[_li_color_0 + 2] = _color_0[1];
 		_data[_li_color_0 + 3] = _color_0[2];
-		_data[_li_color_0 + 4] = _color_0[3];
 	}
 	_set_blend_str = function(_f) {
 		if _batch != undefined {_batch._data[_bi_blend_str + 1] = _f;}
@@ -177,6 +222,18 @@ function _sdf_shape() constructor {
 		if _batch != undefined {_batch._data[_bi_blending + 1] = _f;}
 		_blending = 	_f;
 		_data[_li_blending + 1] = _f;
+	}
+	_set_scale = function(_x, _y, _z) {
+		if _scale_0 = undefined {_not_applicable_error(); exit;}
+		_scale_0 = [_x, _y, _z];
+		if _batch != undefined {
+			_batch._data[_bi_scale_0 + 1] = _scale_0[0];
+			_batch._data[_bi_scale_0 + 2] = _scale_0[1];
+			_batch._data[_bi_scale_0 + 3] = _scale_0[2];
+		}
+		_data[_li_scale_0 + 1] = _scale_0[0];
+		_data[_li_scale_0 + 2] = _scale_0[1];
+		_data[_li_scale_0 + 3] = _scale_0[2];
 	}
 	
 	#endregion

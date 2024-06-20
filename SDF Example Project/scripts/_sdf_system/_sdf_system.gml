@@ -45,7 +45,7 @@
 // Data Type Flags
 #macro _sdf_entry_len					-2
 #macro _sdf_type							-3
-#macro _sdf_intersection			-4
+#macro _sdf_blending					-4
 #macro _sdf_pos_0						-5
 #macro _sdf_pos_1						-6
 #macro _sdf_pos_2						-7
@@ -69,3 +69,10 @@ global._u_sdf_view_mat		= shader_get_uniform(shd_sdf, "view_mat");
 global._u_sdf_proj_mat			= shader_get_uniform(shd_sdf, "proj_mat");
 global._u_sdf_input_array	= shader_get_uniform(shd_sdf, "sdf_input_array");
 global._u_toonramp				= shader_get_sampler_index(shd_sdf, "tex_toonramp");
+
+// Notes
+// A "Modifier" is anything that is not a default data type to the shape.
+// In my system even color and rotation is not a default data type.
+// We keep the defaults minimal for optimization but also so that down
+// the line we can add functions that'll set values for either the entire batch,
+// or for a defined part of the batch.
