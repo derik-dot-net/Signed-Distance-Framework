@@ -9,6 +9,7 @@ function __sdf_round_box(_x, _y, _z, _x_scale, _y_scale, _z_scale, _rounding) : 
 	_type = _sdf_round_box;
 	_pos_0 = [_x, _y, _z];
 	_scale_0 = [_x_scale, _y_scale, _z_scale];
+	_float_0 = _rounding;
 	_data = [	_sdf_type, _type, 
 						_sdf_pos_0, _x, _y,  _z,
 						_sdf_scale_0, _x_scale, _y_scale, _z_scale,	
@@ -21,7 +22,7 @@ function __sdf_round_box(_x, _y, _z, _x_scale, _y_scale, _z_scale, _rounding) : 
 	_li_float_0 = 10;
 	
 	// Batch Index Updater
-	_update_batch_indicies = function() {
+	_update_batch_indices = function() {
 		_bi_type = _index_in_batch_data + _li_type + 1;
 		_bi_pos_0 = _index_in_batch_data + _li_pos_0 + 1;
 		_bi_scale_0 = _index_in_batch_data + _li_scale_0 + 1;	

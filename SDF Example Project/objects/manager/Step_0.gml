@@ -15,6 +15,9 @@ aspect = window_get_width() / window_get_height();
 view_mat = matrix_build_lookat(cam_x, cam_y, cam_z, target_x, target_y, target_z, xup, yup, zup);
 proj_mat = matrix_build_projection_perspective_fov(fov, aspect, znear, zfar);
 
+#endregion
+#region Shape Updates
+
 //sphere.position(-sin(current_time/1000) * 40, -cos(current_time/1000) * 40, 0);
 //sphere.radius(7.5 + (sin(current_time/500) * 2.5));
 //var col = c_rainbow(100000, 10);

@@ -19,7 +19,7 @@ function __sdf_box(_x, _y, _z, _x_scale, _y_scale, _z_scale) : _sdf_shape() cons
 	_li_scale_0 = 6;
 	
 	// Batch Index Updater
-	_update_batch_indicies = function() {
+	_update_batch_indices = function() {
 		_bi_type = _index_in_batch_data + _li_type + 1;
 		_bi_pos_0 = _index_in_batch_data + _li_pos_0 + 1;
 		_bi_scale_0 = _index_in_batch_data + _li_scale_0 + 1;	

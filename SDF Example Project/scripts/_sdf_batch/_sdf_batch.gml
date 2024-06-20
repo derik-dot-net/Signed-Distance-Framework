@@ -45,8 +45,6 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 		// Add Flag to End of Array
 		array_push(_data, _sdf_array_end_flag);
 		
-		show_debug_message(_data)		
-		
 		// Pass in Input Array
 		shader_set_uniform_f_array(global._u_sdf_input_array, _data);
 		
@@ -103,7 +101,7 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 		_sdf._index_in_batch_data = array_length(_data);
 		array_push(sdf_array, _sdf);
 		_sdf._batch = self;
-		_sdf._update_batch_indicies();
+		_sdf._update_batch_indices();
 		_sdf._update_modifer_indices();
 		_rebuild_data_array();
 	}

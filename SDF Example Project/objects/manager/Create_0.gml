@@ -95,42 +95,40 @@ var col = c_rainbow(5, 30);
 round_box.color(col[0], col[1], col[2]);
 sdf_batch.add(round_box);
 
-/*
-
 // Box Frame
 box_frame = sdf_box_frame(20, 0, 0, 5, 5, 5, 1);
 var col = c_rainbow(5, 40);
-box_frame.rgb(col[0], col[1], col[2]);
+box_frame.color(col[0], col[1], col[2]);
 sdf_batch.add(box_frame);
 
 // Torus
 torus = sdf_torus(40, 0, 0, 5, 1);
 var col = c_rainbow(5, 50);
-torus.rgb(col[0], col[1], col[2]);
+torus.color(col[0], col[1], col[2]);
 sdf_batch.add(torus);
 
 // Capped Torus
 capped_torus = sdf_capped_torus(-40, -20, 0, 135, 5, 1);
 var col = c_rainbow(5, 60);
-capped_torus.rgb(col[0], col[1], col[2]);
+capped_torus.color(col[0], col[1], col[2]);
 sdf_batch.add(capped_torus);
 
 // Link
 link = sdf_link(-20, -20, 0, 4, 3, 1);
 var col = c_rainbow(5, 70);
-link.rgb(col[0], col[1], col[2]);
+link.color(col[0], col[1], col[2]);
 sdf_batch.add(link);
 
 // Cone
-cone = sdf_cone(0, -15.1, 0, 35, 10);
+cone = sdf_cone(0, -15, 0, 35, 10);
 var col = c_rainbow(5, 70);
-cone.rgb(col[0], col[1], col[2]);
+cone.color(col[0], col[1], col[2]);
 sdf_batch.add(cone);
 
 // Rounded Cone
-rounded_cone = sdf_round_cone(20, -15.1, 0, 20, -25, 0, 5, 1);
+rounded_cone = sdf_round_cone(20, -15, 0, 20, -25, 0, 5, 1);
 var col = c_rainbow(5, 80);
-rounded_cone.rgb(col[0], col[1], col[2]);
+rounded_cone.color(col[0], col[1], col[2]);
 sdf_batch.add(rounded_cone);
 
 // Hex Prism
@@ -138,7 +136,7 @@ hex_prism = sdf_hex_prism(40, -20, 0, 5, 5);
 var col = c_rainbow(5, 90);
 hex_prism.rgb(col[0], col[1], col[2]);
 sdf_batch.add(hex_prism);
-
+/*
 // Tri Prism
 tri_prism = sdf_triangle_prism(-40, 20, 5, 5);
 var col = c_rainbow(5, 100);

@@ -1,4 +1,54 @@
 function sdf_link(_x, _y, _z, _length, _radius, _thickness) {
-	var _data = [_sdf_type, _sdf_link, _sdf_pos_0, _x, _y, _z, _sdf_float_0, _length, _sdf_float_1, _radius, _sdf_float_2, _thickness];
-	return new _sdf_shape(_data);
+	return new __sdf_link(_x, _y, _z, _length, _radius, _thickness);
+}
+function __sdf_link(_x, _y, _z, _length, _radius, _thickness) : _sdf_shape() constructor {
+	
+	#region (Internal)
+	
+	// Data
+	_type = _sdf_link;
+	_pos_0 = [_x, _y, _z];
+	_float_0 = _length;
+	_float_1 = _radius;
+	_float_2 = _thickness;
+	_data = [	_sdf_type, _type, 
+						_sdf_pos_0, _x, _y,  _z,
+						_sdf_float_0, _length,		
+						_sdf_float_1, _radius,
+						_sdf_float_2, _thickness	];
+						
+	// Local Indexes
+	_li_type =  0;
+	_li_pos_0 = 2;
+	_li_float_0 = 6;
+	_li_float_1 = 8;
+	_li_float_2 = 10;
+	
+	// Batch Index Updater
+	_update_batch_indices = function() {
+		_bi_type = _index_in_batch_data + _li_type + 1;
+		_bi_pos_0 = _index_in_batch_data + _li_pos_0 + 1;
+		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
+		_bi_float_1 = _index_in_batch_data + _li_float_1 + 1;	
+		_bi_float_2 = _index_in_batch_data + _li_float_2 + 1;	
+	}
+	
+	#endregion
+	#region Functions
+	
+	position = function(_x, _y, _z) {
+		_set_pos(0, _x, _y, _z);
+	}
+	length = function(_length) {
+		_set_float(0, _length);	
+	}
+	radius = function(_radius) {
+		_set_float(1, _radius);	
+	}
+	thickness = function(_thickness) {
+		_set_float(2, _thickness);	
+	}
+	
+	#endregion	
+	
 }
