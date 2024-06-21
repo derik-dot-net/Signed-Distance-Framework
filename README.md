@@ -14,7 +14,7 @@ To-do (not in order of priority):
 6. Procedural Patterns
 7. Optimize Shader
    - Add Support for Orthographic projections
-   - Bounding Volumes (need to be a struct that itself can be stored in a batch? or maybe the batch can do this behind the scenes)
+   - Bounding Volumes (need to be a struct that itself can be stored in a batch? or maybe the batch can do this behind the scenes.
    - Test for most optimal configurations of conditional branching nests.
    - For debug mode use a steps counter that includes steps taking in the effect functions.
 8. Anti-Aliasing
