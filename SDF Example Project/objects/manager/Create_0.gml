@@ -73,9 +73,9 @@ return [color_get_red(rainbow), color_get_green(rainbow), color_get_blue(rainbow
 }
 
 // Plane
-//plane = sdf_plane(0, 0, -10, 0, 0, 1, 1);
-//plane.rgb(0.8, 0.8, 0.8, true);
-//sdf_batch.add(plane);
+plane = sdf_plane(0, 0, -10, 0, 0, 1, 1);
+plane.color(0.8, 0.8, 0.8, true);
+sdf_batch.add(plane);
 
 // Sphere
 sphere = sdf_sphere(-40, 0, 0, 5);
@@ -130,101 +130,101 @@ rounded_cone = sdf_round_cone(20, -15, 0, 20, -25, 0, 5, 1);
 var col = c_rainbow(5, 80);
 rounded_cone.color(col[0], col[1], col[2]);
 sdf_batch.add(rounded_cone);
-/*
+
 // Hex Prism
 hex_prism = sdf_hex_prism(40, -20, 0, 5, 5);
 var col = c_rainbow(5, 90);
-hex_prism.rgb(col[0], col[1], col[2]);
+hex_prism.color(col[0], col[1], col[2]);
 sdf_batch.add(hex_prism);
 
 // Tri Prism
-tri_prism = sdf_triangle_prism(-40, 20, 5, 5);
+tri_prism = sdf_triangle_prism(-40, 20, 5, 5, 5);
 var col = c_rainbow(5, 100);
-tri_prism.rgb(col[0], col[1], col[2]);
+tri_prism.color(col[0], col[1], col[2]);
 sdf_batch.add(tri_prism);
 
 // Capsule
 capsule = sdf_capsule(-20, 20, 0, -20, 20, 5, 5);
 var col = c_rainbow(5, 110);
-capsule.rgb(col[0], col[1], col[2]);
+capsule.color(col[0], col[1], col[2]);
 sdf_batch.add(capsule);
 
 // Cylinder
 cylinder = sdf_cylinder(0, 20, 0, 0, 20, 10, 5);
 var col = c_rainbow(5, 120);
-cylinder.rgb(col[0], col[1], col[2]);
+cylinder.color(col[0], col[1], col[2]);
 sdf_batch.add(cylinder);
 
 // Capped Cone
 capped_cone = sdf_capped_cone(20, 20, 0, 20, 20, 10, 5, 2.5);
 var col = c_rainbow(5, 130);
-capped_cone.rgb(col[0], col[1], col[2]);
+capped_cone.color(col[0], col[1], col[2]);
 sdf_batch.add(capped_cone);
 
 // Solid Angle
 solid_angle = sdf_solid_angle(40, 15, 0, 30, 10);
 var col = c_rainbow(5, 140);
-solid_angle.rgb(col[0], col[1], col[2]);
+solid_angle.color(col[0], col[1], col[2]);
 sdf_batch.add(solid_angle);
 
 // Cut Sphere
 cut_sphere = sdf_cut_sphere(-40, 40, 0,  5, 0.5);
 var col = c_rainbow(5, 150);
-cut_sphere.rgb(col[0], col[1], col[2]);
+cut_sphere.color(col[0], col[1], col[2]);
 sdf_batch.add(cut_sphere);
 
 // Cut Hollow Sphere
 cut_hollow_sphere = sdf_cut_hollow_sphere(-20, 40, 0,  5, 0.5, 0.1);
 var col = c_rainbow(5, 160);
-cut_hollow_sphere.rgb(col[0], col[1], col[2]);
+cut_hollow_sphere.color(col[0], col[1], col[2]);
 sdf_batch.add(cut_hollow_sphere);
 
 // Death Star
 death_star = sdf_death_star(0, 40, 0,  5, 4, 5);
 var col = c_rainbow(5, 170);
-death_star.rgb(col[0], col[1], col[2]);
+death_star.color(col[0], col[1], col[2]);
 sdf_batch.add(death_star);
 
 // Ellipsoid
 ellipsoid = sdf_ellipsoid(20, 40, 0,  5, 5, 3.5);
 var col = c_rainbow(5, 180);
-ellipsoid.rgb(col[0], col[1], col[2]);
+ellipsoid.color(col[0], col[1], col[2]);
 sdf_batch.add(ellipsoid);
 
 // Rhombus
 rhombus = sdf_rhombus(40, 40, 0, 5, 2.5, 1, 3);
 var col = c_rainbow(5, 190);
-rhombus.rgb(col[0], col[1], col[2]);
+rhombus.color(col[0], col[1], col[2]);
 sdf_batch.add(rhombus);
 
 // Octahedron
 octahedron = sdf_octahedron(-40, -40, 0, 5);
 var col = c_rainbow(5, 200);
-octahedron.rgb(col[0], col[1], col[2]);
+octahedron.color(col[0], col[1], col[2]);
 sdf_batch.add(octahedron);
 
 // Pyramid
 pyramid = sdf_pyramid(-20, -40, 0, 5, 5, 5);
 var col = c_rainbow(5, 210);
-pyramid.rgb(col[0], col[1], col[2]);
+pyramid.color(col[0], col[1], col[2]);
 sdf_batch.add(pyramid);
 
 // Triangle
 triangle = sdf_triangle(-5, -35, 0, 0, -45, 5, 5, -35, 0);
 var col = c_rainbow(5, 220);
-triangle.rgb(col[0], col[1], col[2]);
+triangle.color(col[0], col[1], col[2]);
 sdf_batch.add(triangle);
 
 // Quad
 quad = sdf_quad(15, -45, 0, 15, -35, 0, 25, -35, 0, 25, -45, 0);
 var col = c_rainbow(5, 230);
-quad.rgb(col[0], col[1], col[2]);
+quad.color(col[0], col[1], col[2]);
 sdf_batch.add(quad);
 
 // Egg
 egg = sdf_egg(40, -40, 0, 5, 5, 2.25);
 var col = c_rainbow(5, 240);
-egg.rgb(col[0], col[1], col[2]);
+egg.color(col[0], col[1], col[2]);
 sdf_batch.add(egg);
-*/
+
 #endregion

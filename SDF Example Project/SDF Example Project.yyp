@@ -68,7 +68,7 @@
     {"id":{"name":"sdf_solid_angle","path":"scripts/sdf_solid_angle/sdf_solid_angle.yy",},},
     {"id":{"name":"sdf_sphere","path":"scripts/sdf_sphere/sdf_sphere.yy",},},
     {"id":{"name":"sdf_torus","path":"scripts/sdf_torus/sdf_torus.yy",},},
-    {"id":{"name":"sdf_tri_prism","path":"scripts/sdf_tri_prism/sdf_tri_prism.yy",},},
+    {"id":{"name":"sdf_triangle_prism","path":"scripts/sdf_triangle_prism/sdf_triangle_prism.yy",},},
     {"id":{"name":"sdf_triangle","path":"scripts/sdf_triangle/sdf_triangle.yy",},},
     {"id":{"name":"shd_sdf","path":"shaders/shd_sdf/shd_sdf.yy",},},
     {"id":{"name":"spr_sdf_toonramp","path":"sprites/spr_sdf_toonramp/spr_sdf_toonramp.yy",},},

@@ -44,7 +44,7 @@
     {"name":"sdf_solid_angle","order":22,"path":"scripts/sdf_solid_angle/sdf_solid_angle.yy",},
     {"name":"sdf_sphere","order":23,"path":"scripts/sdf_sphere/sdf_sphere.yy",},
     {"name":"sdf_torus","order":24,"path":"scripts/sdf_torus/sdf_torus.yy",},
-    {"name":"sdf_tri_prism","order":25,"path":"scripts/sdf_tri_prism/sdf_tri_prism.yy",},
+    {"name":"sdf_triangle_prism","order":25,"path":"scripts/sdf_triangle_prism/sdf_triangle_prism.yy",},
     {"name":"sdf_triangle","order":26,"path":"scripts/sdf_triangle/sdf_triangle.yy",},
     {"name":"shd_sdf","order":3,"path":"shaders/shd_sdf/shd_sdf.yy",},
     {"name":"spr_sdf_toonramp","order":2,"path":"sprites/spr_sdf_toonramp/spr_sdf_toonramp.yy",},

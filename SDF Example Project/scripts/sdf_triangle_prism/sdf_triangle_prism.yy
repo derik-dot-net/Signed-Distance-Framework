@@ -1,9 +1,9 @@
 {
   "$GMScript":"v1",
-  "%Name":"sdf_tri_prism",
+  "%Name":"sdf_triangle_prism",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"sdf_tri_prism",
+  "name":"sdf_triangle_prism",
   "parent":{
     "name":"Shapes",
     "path":"folders/Signed Distance Framework/Shapes.yy",

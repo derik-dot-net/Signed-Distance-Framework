@@ -117,7 +117,7 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 	}
 	
 	// Fog
-	static fog = function(_enabled, _dist, _r, _g, _b, _linear) {
+	static fog = function(_enabled, _dist, _r, _g, _b, _linear = false) {
 		fog_enabled = _enabled;
 		fog_color = _linear ? [_r, _g, _b] : [_r / 255, _g / 255, _b / 255];
 		fog_distance = _dist;
