@@ -38,6 +38,7 @@
   },
   "name":"SDF Example Project",
   "resources":[
+    {"id":{"name":"Note1","path":"notes/Note1/Note1.yy",},},
     {"id":{"name":"manager","path":"objects/manager/manager.yy",},},
     {"id":{"name":"scene","path":"rooms/scene/scene.yy",},},
     {"id":{"name":"_sdf_batch","path":"scripts/_sdf_batch/_sdf_batch.yy",},},

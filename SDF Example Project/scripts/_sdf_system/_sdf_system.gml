@@ -58,8 +58,18 @@
 #macro _sdf_float_3						-14
 #macro _sdf_color_0						-15
 #macro _sdf_blend_str					-16
+#macro _sdf_pattern					-17
 
 #macro _sdf_error_tag_str	"SDF ERROR: "
+
+// Pattern Flags
+#macro sdf_pattern_none								0
+#macro sdf_pattern_checkered						1
+//#macro sdf_pattern_checkered_filtered	2
+#macro sdf_pattern_xor									3
+//#macro sdf_pattern_xor_filtered				4
+#macro sdf_pattern_grid									5
+//#macro sdf_pattern_grid_filtered				6
 
 // Textures
 global._sdf_tex_toonramp	= sprite_get_texture(spr_sdf_toonramp, 0);

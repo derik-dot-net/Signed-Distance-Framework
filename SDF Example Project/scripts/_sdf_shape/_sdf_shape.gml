@@ -20,9 +20,11 @@ function _sdf_shape() constructor {
 	_float_3 = undefined;
 	_color_0 = undefined;
 	_blend_str = undefined;
+	_pattern = undefined;
 	_batch = undefined;
 	_index_in_batch = undefined;
 	_index_in_batch_data = undefined;
+	
 	
 	// Local Index for Shape Data
 	_li_type = undefined;
@@ -39,6 +41,7 @@ function _sdf_shape() constructor {
 	_li_float_3 = undefined;
 	_li_color_0 = undefined;
 	_li_blend_str = undefined;
+	_li_pattern = undefined;
 	
 	// Batch Indexes for Shape Data
 	_bi_type = undefined;
@@ -55,6 +58,7 @@ function _sdf_shape() constructor {
 	_bi_float_3 = undefined;
 	_bi_color_0 = undefined;
 	_bi_blend_str = undefined;
+	_bi_pattern = undefined;
 	
 	// Trying to set a data type using an internal function in a way that isn't applicable
 	_not_applicable_error = function() {
@@ -93,6 +97,15 @@ function _sdf_shape() constructor {
 					_batch._rebuild_data_array();
 				}
 			break;	
+			case _sdf_pattern:
+				array_push(_data, _sdf_pattern)
+				_li_pattern = _new_index;
+				if _batch != undefined {
+					_bi_pattern = _index_in_batch_data + _li_pattern + 1;
+					array_insert(_batch._data, _bi_pattern, _sdf_pattern, 0, 0, 0);
+					_batch._rebuild_data_array();
+				}
+			break;	
 		}
 	}	
 	_update_modifer_indices = function() {
@@ -104,6 +117,9 @@ function _sdf_shape() constructor {
 		}
 		if _li_blend_str != undefined {
 			_bi_blend_str = _index_in_batch_data + _li_blend_str + 1;
+		}
+		if _li_pattern != undefined {
+			_bi_pattern = _index_in_batch_data + _li_pattern + 1;
 		}
 	}
 		
@@ -237,6 +253,18 @@ function _sdf_shape() constructor {
 		_data[_li_scale_0 + 2] = _scale_0[1];
 		_data[_li_scale_0 + 3] = _scale_0[2];
 	}
+	_set_pattern = function(_type, _scale, _alpha) {
+		if _pattern = undefined {_create_modifer_index(_sdf_pattern);}
+		_pattern = _type;
+		if _batch != undefined {
+			_batch._data[_bi_pattern + 1] = _type;
+			_batch._data[_bi_pattern + 2] = _scale;
+			_batch._data[_bi_pattern + 3] = _alpha;
+			}
+		_data[_li_pattern + 1] = _type;	
+		_data[_li_pattern + 2] = _scale;
+		_data[_li_pattern + 3] = _alpha;
+	}
 	
 	#endregion
 	#region Common Functions
@@ -254,6 +282,11 @@ function _sdf_shape() constructor {
 	// Set the blending strength used by the shape
 	blending_strength = function(_strength) {
 		_set_blend_str(_strength);
+	}
+	
+	// Set a pattern for your shape 
+	pattern = function(_type, _scale, _alpha) {
+		_set_pattern(_type, _scale, _alpha);
 	}
 	
 	#endregion 

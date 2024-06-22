@@ -3,6 +3,9 @@
 // Enable Depth Writing
 #extension GL_EXT_frag_depth : enable
 
+// Enable Standard Derivates
+#extension GL_OES_standard_derivatives: enable
+
 // Precision
 precision highp float;
 
@@ -20,6 +23,9 @@ precision highp float;
 
 // Header Data Size to Skip in Shape Loop
 #define array_header_size 13
+
+// Grid Pattern Line Thickness Ratio
+#define grid_thickness_ratio 10.0
 
 #endregion
 #region Varyings
@@ -115,6 +121,18 @@ uniform sampler2D tex_toonramp;
 #define _sdf_float_3						-14
 #define _sdf_color_0						-15
 #define _sdf_smoothing				-16
+#define _sdf_pattern						-17
+
+// Patterns
+#define _pattern_none									0
+#define _pattern_checkered						1
+#define _pattern_checkered_filtered		2
+#define _pattern_xor									3
+#define _pattern_xor_filtered						4
+#define _pattern_grid									5
+#define _pattern_grid_filtered					6
+#define _pattern_crosses							7
+#define _pattern_crosses_filtered				8
 
 #endregion
 #region Math Functions
@@ -140,6 +158,12 @@ vec3 transform_vertex(vec3 vec, vec3 pos, vec4 rot, vec3 scale)
 {
 	vec3 vertex = rotate_quaternion(vec * scale, rot);
 	return vertex + pos;
+}
+
+// Trianglular Modulation
+vec3 tri( in vec3 x ) {
+    vec3 h = fract(x/2.0)-0.5;
+    return 1.0-2.0*abs(h);
 }
 
 #endregion
@@ -533,6 +557,65 @@ vec3 nearest_color = vec3(0.0, 0.0, 0.0);
 vec3 nearest_color_blended = vec3(0.0, 0.0, 0.0);
 
 #endregion
+#region Patterns
+
+// Checkered
+float checkers( in vec3 p ) {
+    vec3 q = floor(p);
+    return mod(q.x + q.y + q.z, 2.0);
+}
+
+// Checkered (Filtered)
+float checkers_filtered( in vec3 p, in vec3 ddx, in vec3 ddy ) {
+    vec3 w = max(abs(ddx), abs(ddy)) + 0.001; 
+    vec3 i = (tri(p + 0.5 * w) - tri(p - 0.5 * w)) / w;   
+    return 0.5 - 0.5 * i.x * i.y * i.z;            
+}
+
+// Xor
+float xor_pattern( in vec2 pos ) {
+    float xor = 0.0;
+    for( int i=0; i<8; i++ ) {
+        xor += mod( floor(pos.x)+floor(pos.y), 2.0 );
+
+        pos *= 0.5;
+        xor *= 0.5;
+    }
+    return xor;
+}
+
+// Xor (Filtered)
+float xor_pattern_filtered( in vec2 pos, in vec2 ddx, in vec2 ddy ) {
+    float xor = 0.0;
+    for( int i=0; i<8; i++ ) {
+        vec2 w = max(abs(ddx), abs(ddy)) + 0.01;  
+        vec2 f = 2.0*(abs(fract((pos-0.5*w)/2.0)-0.5)-abs(fract((pos+0.5*w)/2.0)-0.5))/w;
+        xor += 0.5 - 0.5*f.x*f.y;     
+        ddx *= 0.5;
+        ddy *= 0.5;
+        pos *= 0.5;
+        xor *= 0.5;
+    }
+    return xor;
+}
+
+// Grid
+float grid( in vec2 p ) {
+    vec2 i = step( fract(p), vec2(1.0/grid_thickness_ratio) );
+    return (1.0-i.x)*(1.0-i.y); 
+}
+
+//Grid (Filtered)
+float grid_filtered( in vec2 p, in vec2 ddx, in vec2 ddy ) {
+    vec2 w = max(abs(ddx), abs(ddy)) + 0.01;
+    vec2 a = p + 0.5*w;                        
+    vec2 b = p - 0.5*w;           
+    vec2 i = (floor(a)+min(fract(a)*grid_thickness_ratio,1.0)-
+              floor(b)-min(fract(b)*grid_thickness_ratio,1.0))/(grid_thickness_ratio*w);
+    return (1.0-i.x)*(1.0-i.y);
+}
+
+#endregion
 #region Shape Distance Loop
 
 // Return distance to the closest SDF in the Array
@@ -563,12 +646,15 @@ float get_dist(vec3 p) {
 		if (shape_array_entries == _sdf_array_end) {
 			break;
 		}
-		
+			
 		#region Store Shape Data
 		
 		// All Possible Data Types
 		int sdf_type = _sdf_sphere;
 		int intersection_type = _op_union;
+		int pattern_type = _pattern_none;
+		float pattern_scale = 0.1;
+		float pattern_alpha = 1.0;
 		vec3 pos_0 = vec3(0.0, 0.0, 0.0);
 		vec3 pos_1 = vec3(0.0, 0.0, 0.0);
 		vec3 pos_2 = vec3(0.0, 0.0, 0.0);
@@ -657,6 +743,11 @@ float get_dist(vec3 p) {
 				} else if (flag_value ==  _sdf_smoothing) { // Smoothing
 					blend_strength = sdf_input_array[read_pos + 1];
 					read_steps = 2;
+				} else if (flag_value ==  _sdf_pattern) { // Patterns
+					pattern_type = int(sdf_input_array[read_pos + 1]);
+					pattern_scale = sdf_input_array[read_pos + 2];
+					pattern_alpha = sdf_input_array[read_pos + 3];
+					read_steps = 4;
 				}
 			}
 			
@@ -737,12 +828,46 @@ float get_dist(vec3 p) {
 		
 		
 		#endregion
-		#region Blend Operation 
+		#region Patterns
+		
+		if (pattern_type != _pattern_none) {
+			if (pattern_type == _pattern_checkered) { // Checkered
+				color_0 = mix(color_0, color_0 * checkers(p * pattern_scale), pattern_alpha);
+			} else if (pattern_type == _pattern_checkered_filtered) { // Checkered (Filtered)
+				// I will come back to filtered patterns, eventually.
+				// Tried to implement without fully understanding.
+				// This currently draws the pattern but without any filtering.
+				//vec3 ddx_uvw = vec3(dFdx( (v_vScreenPos.x + 1.0) / 2.0 )); 
+				//vec3 ddy_uvw = vec3(dFdy( (v_vScreenPos.y + 1.0) / 2.0 )); 
+				//color_0 = mix(color_0, color_0 * checkers_filtered(p * pattern_scale, ddx_uvw, ddy_uvw), pattern_alpha);	
+			} else if (pattern_type == _pattern_xor) { // Xor
+				color_0 = mix(color_0, color_0 * xor_pattern(p.xy * pattern_scale * 200.0), pattern_alpha);
+			} else if (pattern_type == _pattern_xor_filtered) { // Xor (Filtered)
+				/////////////////////////////////////////////////////////////////////////////
+			} else if (pattern_type == _pattern_grid) { // Grid
+				color_0 = mix(color_0, color_0 * grid(p.xy * pattern_scale), pattern_alpha);
+			} else if (pattern_type == _pattern_grid_filtered) { // Grid (Filtered)
+				/////////////////////////////////////////////////////////////////////////////
+			}
+			
+		}
+
+		
+		#endregion
+		#region Color
 		
 		// Diffuse
 		if (shape_dist < min_dist) {
-			nearest_color = color_0;	 
+			nearest_color = color_0;
 		}	
+		
+		// Update Blended Color
+		float inv_dist = 1. / (1. + shape_dist);
+		sum_dist += inv_dist;
+		nearest_color_blended += color_0 * inv_dist;
+		
+		#endregion
+		#region Blend Operation 
 		
 		if (intersection_type == _op_union) { // Union
 			min_dist = op_union(min_dist, shape_dist);
@@ -761,15 +886,10 @@ float get_dist(vec3 p) {
 		}
 					
 		#endregion
-		
-		// Update Blended Color
-		float inv_dist = 1. / (1. + shape_dist);
-		sum_dist += inv_dist;
-		nearest_color_blended += color_0 * inv_dist;
-		
+
 		// Skip Forward in Array
 		loop_step = shape_array_entries + 1; 
-		// Plus one so we move to the next shape or flag
+		// Plus one so we move to the next shape
 		
 	}
 	
@@ -983,6 +1103,8 @@ void main() {
 	// Fog
 	if (fog_enabled == 1) {
 		frag_color = apply_fog(frag_color, ray.x);
+		float dif = sqrt(clamp( 0.5+0.5*n.y, 0.0, 1.0 ));
+		frag_color += frag_color * 0.5 * dif * fog_color;
 	}
 	
 	// Specular
