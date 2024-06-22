@@ -20,7 +20,7 @@ To-do (not in order of priority):
 - Bounding Volumes
 - Pre-pass Optimization
 - 3D SDF Text
-  - This is just a loose idea, but I imagine this is likely possibly, though I'm unsure exactly how easiy it would be to do. 
+  - This is just a loose idea, but I imagine this is likely possible, though I'm unsure exactly how easiy it would be to do. 
 - Make the Github page look nice
   - Asset logo Idea: The Gamemaker logo made from SDFs using smooth union, alongside the text "Signed Distance Framework".
   - Add documentation for all functionality, each shapes available properties, and photo examples of what they look like.
