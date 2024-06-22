@@ -5,6 +5,7 @@ To-do (not in order of priority):
   - Will require shapes located afterwards in the batch to have there batch indexes and local indexes reset. 
 - Render Shapes without Batch
 - vBuffer Parser (Mesh to SDF Triangles)
+  - Example: ```sdf_mesh(_vbuffer, _vformat);```
 - Orthographic Support
 - Optimize Secondary Distance Passes for Effects
   - The shape distance loop can probably be minimalized for shadows, ao, and normal calculation.
