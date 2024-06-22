@@ -5,6 +5,8 @@ To-do (not in order of priority):
 - Render Shapes without Batch
 - vBuffer Parser (Mesh to SDF Triangles)
 - Orthographic Support
+- Optimize Secondary Distance Passes for Effects
+  ^ The shape distance loop can probably be minimalized for shadows, ao, and normal calculation.
 - Antialising
 - Make the Github page look nice
 - Bounding Volumes
