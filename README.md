@@ -13,6 +13,7 @@ To-do (not in order of priority):
 - vBuffer Parser (Mesh to SDF Triangles)
   - Example: ```mesh = sdf_mesh(_vbuffer, _vformat);```
 - Orthographic Support
+- Filtered versions of the Procedural Patterns.
 - Optimize Secondary Distance Passes for Effects
   - The distance loop can probably be minimalized for shadows, ao, and normal calculation.
   - Avoiding re-runing the distance loop as it is currently would ensure the color is only being determined once.
