@@ -1091,7 +1091,8 @@ void main() {
 	// Shadows
 	if (shadows_enabled == 1) {
 		float shadow_str = calculate_soft_shadows(ro + rd * ray.x, l, 0.1, 25.0, 0);
-		frag_color *= shadow_str;
+		//frag_color *= shadow_str;
+		frag_color = mix(frag_color, frag_color * shadow_str, 0.5);
 	}
 	
 	// Ambient Occlusion
@@ -1103,8 +1104,8 @@ void main() {
 	// Fog
 	if (fog_enabled == 1) {
 		frag_color = apply_fog(frag_color, ray.x);
-		float dif = sqrt(clamp( 0.5+0.5*n.y, 0.0, 1.0 ));
-		frag_color += frag_color * 0.5 * dif * fog_color;
+		//float dif = sqrt(clamp( 0.5+0.5*n.y, 0.0, 1.0 ));
+		//frag_color += frag_color * 0.5 * dif * fog_color;
 	}
 	
 	// Specular

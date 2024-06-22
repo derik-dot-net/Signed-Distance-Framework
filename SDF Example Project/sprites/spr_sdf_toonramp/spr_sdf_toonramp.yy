@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":0,
   "parent":{
-    "name":"Signed Distance Framework",
-    "path":"folders/Signed Distance Framework.yy",
+    "name":"(System)",
+    "path":"folders/Signed Distance Framework/(System).yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

@@ -30,7 +30,7 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 	_data =			[	shading, light_vector[0], light_vector[1], light_vector[2], 
 								shadows_enabled, ambient_occlusion_enabled, fog_enabled,
 								fog_color[0], fog_color[1], fog_color[2], fog_distance, 
-								debug_enabled, specular_enabled];
+								debug_enabled, specular_enabled	];
 								
 	// Render SDF Batch
 	static draw = function(_view_mat = matrix_get(matrix_view), _proj_mat = matrix_get(matrix_projection)) {
