@@ -18,4 +18,4 @@ Editor Idea
 - Nommin's Dear ImGUI 
 - ColMesh with bounding box selection
 - Can use my GM File Association to export a custom file, or alternatively just a buffer or set of array values for copy and paste.
-- Can be loaded using something like: ```loaded_file = sdf_load(_file_Path)```;
+- Can be loaded using something like: ```loaded_file = sdf_load(_file_Path);```
