@@ -15,7 +15,7 @@ To-do (not in order of priority):
 - Orthographic Support
 - Optimize Secondary Distance Passes for Effects
   - The distance loop can probably be minimalized for shadows, ao, and normal calculation.
-  - Avoid re-runing the distance loop as it is currently to ensure the color and other perhaps other values are only being determined once.
+  - Avoiding re-runing the distance loop as it is currently would ensure the color is only being determined once.
 - Antialising
 - Bounding Volumes
 - Pre-pass Optimization
