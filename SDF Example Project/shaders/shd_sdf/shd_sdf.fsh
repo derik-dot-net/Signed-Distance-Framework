@@ -908,7 +908,7 @@ vec2 ray_march(vec3 ro, vec3 rd) {
 	
 	// Store Total Distance Traveled
 	float d = 0.0;
-	
+		
 	// Store Total Steps Traveled
 	float steps = float(max_steps);
 	
@@ -1012,10 +1012,9 @@ float calculate_ao( in vec3 pos, in vec3 nor ) {
 #region Fog
 
 vec3 apply_fog(vec3 col, float dist) {
-    float fog_amount = 1.0 - exp(-(dist-8.0) * (1.0/fog_dist));
+    float fog_amount = max(min(pow((dist / fog_dist) + 0.5, 5.0), 1.0), 0.0);
     return mix(col, fog_color, fog_amount);
 }
-
 
 #endregion
 #region View & Projection 
@@ -1104,8 +1103,6 @@ void main() {
 	// Fog
 	if (fog_enabled == 1) {
 		frag_color = apply_fog(frag_color, ray.x);
-		//float dif = sqrt(clamp( 0.5+0.5*n.y, 0.0, 1.0 ));
-		//frag_color += frag_color * 0.5 * dif * fog_color;
 	}
 	
 	// Specular
@@ -1148,7 +1145,7 @@ void main() {
 	
 	#endregion
 	#region Depth
-	
+		
 	// Set The Depth of The Fragment
 	#ifdef GL_EXT_frag_depth
 		vec4 P = view_proj * vec4(frag_pos, 1.);

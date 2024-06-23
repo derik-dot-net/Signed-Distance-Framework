@@ -76,7 +76,7 @@ function _sdf_shape() constructor {
 				if _batch != undefined {
 					_bi_color_0 =  _index_in_batch_data + _li_color_0 + 1;
 					array_insert(_batch._data, _bi_color_0, _sdf_color_0, 0, 0, 0); 
-					_batch._rebuild_data_array();
+					_batch._build_data_array();
 				}
 			break;	
 			case _sdf_blending:
@@ -85,7 +85,7 @@ function _sdf_shape() constructor {
 				if _batch != undefined {
 					_bi_blending = _index_in_batch_data + _li_blending + 1;
 					array_insert(_batch._data, _bi_blending, _sdf_blending, 0);
-					_batch._rebuild_data_array();
+					_batch._build_data_array();
 				}
 			break;	
 			case _sdf_blend_str:
@@ -94,7 +94,7 @@ function _sdf_shape() constructor {
 				if _batch != undefined {
 					_bi_blend_str = _index_in_batch_data + _li_blend_str + 1;
 					array_insert(_batch._data, _bi_blend_str, _sdf_blend_str, 0);
-					_batch._rebuild_data_array();
+					_batch._build_data_array();
 				}
 			break;	
 			case _sdf_pattern:
@@ -103,7 +103,7 @@ function _sdf_shape() constructor {
 				if _batch != undefined {
 					_bi_pattern = _index_in_batch_data + _li_pattern + 1;
 					array_insert(_batch._data, _bi_pattern, _sdf_pattern, 0, 0, 0);
-					_batch._rebuild_data_array();
+					_batch._build_data_array();
 				}
 			break;	
 		}
@@ -121,8 +121,8 @@ function _sdf_shape() constructor {
 		if _li_pattern != undefined {
 			_bi_pattern = _index_in_batch_data + _li_pattern + 1;
 		}
-	}
-		
+	}	
+	
 	// Data Setters (Handles Local and Batch Updates)
 	_set_pos = function(_index, _x, _y, _z) {
 		switch(_index) {

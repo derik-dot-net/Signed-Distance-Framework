@@ -57,7 +57,7 @@ sdf_style = sdf_default_shading;
 sdf_batch = sdf_create_batch(sdf_style);
 
 // Render Settings
-sdf_batch.fog(true, 800, 0.6, 0.6, 1.0, true);
+sdf_batch.fog(true, 800, 0, 0, 0, true);
 sdf_batch.shadows(true);
 sdf_batch.ambient_occlusion(true);
 sdf_batch.specular(true);

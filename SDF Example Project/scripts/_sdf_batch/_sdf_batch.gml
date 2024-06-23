@@ -1,4 +1,6 @@
-function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
+function _sdf_batch(shading_type = sdf_default_shading) constructor {
+	
+	#region (Internal)
 	
 	// SDFs to Pull Data From
 	sdf_array = [];
@@ -32,6 +34,35 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 								fog_color[0], fog_color[1], fog_color[2], fog_distance, 
 								debug_enabled, specular_enabled	];
 								
+	// Build Data Array
+	static _build_data_array =  function() {
+			
+		// Clear Array 
+		_data = [	shading, light_vector[0], light_vector[1], light_vector[2], 
+							shadows_enabled, ambient_occlusion_enabled, fog_enabled,
+							fog_color[0], fog_color[1], fog_color[2], fog_distance, 
+							debug_enabled, specular_enabled	];				
+		//show_debug_message("updating array" + string(get_timer()))
+			
+		// Loop Through SDFs
+		for (var i = 0; i < array_length(sdf_array); i++) {
+				
+			// Grab SDF
+			var _sdf = sdf_array[i];
+				
+			var _sdf_data = _sdf._data;
+				
+			// Combine Arrays
+			array_push(_data, array_length(_sdf_data));
+			_data = array_concat(_data, _sdf_data);	
+				
+		}
+			
+	}
+
+	#endregion
+	#region Common Functions
+	
 	// Render SDF Batch
 	static draw = function(_view_mat = matrix_get(matrix_view), _proj_mat = matrix_get(matrix_projection)) {
 				
@@ -45,7 +76,7 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 		// Add Flag to End of Array
 		array_push(_data, _sdf_array_end_flag);
 		
-		// Pass in Input Array
+		// Pass in Input Arrays
 		shader_set_uniform_f_array(global._u_sdf_input_array, _data);
 		
 		// Remove Flag From End of Array
@@ -67,34 +98,8 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 		// Reset Shader 
 		shader_reset();
 		
-	}
-	
-	// Update Data Array
-	static _rebuild_data_array =  function() {
-			
-		// Clear Array 
-		_data = [	shading, light_vector[0], light_vector[1], light_vector[2], 
-							shadows_enabled, ambient_occlusion_enabled, fog_enabled,
-							fog_color[0], fog_color[1], fog_color[2], fog_distance, 
-							debug_enabled, specular_enabled];					
-		//show_debug_message("updating array" + string(get_timer()))
-			
-		// Loop Through SDFs
-		for (var i = 0; i < array_length(sdf_array); i++) {
-				
-			// Grab SDF
-			var _sdf = sdf_array[i];
-				
-			var _sdf_data = _sdf._data;
-				
-			// Combine Arrays
-			array_push(_data, array_length(_sdf_data));
-			_data = array_concat(_data, _sdf_data);	
-				
-		}
-			
-	}
-	
+	}	
+
 	// Add SDF to Batch
 	static add = function(_sdf) {
 		_sdf._index_in_batch = array_length(sdf_array);
@@ -103,7 +108,7 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 		_sdf._batch = self;
 		_sdf._update_batch_indices();
 		_sdf._update_modifer_indices();
-		_rebuild_data_array();
+		_build_data_array();
 	}
 	
 	// Shadows
@@ -138,5 +143,6 @@ function _sdf_batch(shading_type = sdf_smooth_shading) constructor {
 		debug_enabled = _enabled;	
 	}
 		
+	#endregion
 	
 }
