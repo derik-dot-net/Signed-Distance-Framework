@@ -47,13 +47,13 @@ uniform float sdf_input_array[max_array_length];
 // Grab Render Settings from Array
 int render_style = int(sdf_input_array[0]);
 vec3 light_dir = vec3(sdf_input_array[1], sdf_input_array[2], sdf_input_array[3]);
-int shadows_enabled = int(sdf_input_array[4]);
-int ambient_occlusion_enabled = int(sdf_input_array[5]);
-int fog_enabled = int(sdf_input_array[6]);
+bool shadows_enabled = bool(sdf_input_array[4]);
+bool ambient_occlusion_enabled = bool(sdf_input_array[5]);
+bool fog_enabled = bool(sdf_input_array[6]);
 vec3 fog_color = vec3(sdf_input_array[7], sdf_input_array[8], sdf_input_array[9]);
 float fog_dist = sdf_input_array[10];
-int debug_enabled = int(sdf_input_array[11]);
-int specular_enabled = int(sdf_input_array[12]);
+bool debug_enabled = bool(sdf_input_array[11]);
+bool specular_enabled = bool(sdf_input_array[12]);
 
 // Toon Shading texture
 uniform sampler2D tex_toonramp;
@@ -69,25 +69,25 @@ uniform sampler2D tex_toonramp;
 #define _sdf_torus								4
 #define _sdf_capped_torus				5
 #define _sdf_link									6
-#define _sdf_cone								8
-#define _sdf_round_cone				9
-#define _sdf_plane								10
-#define _sdf_hex_prism					11
-#define _sdf_tri_prism						12
-#define _sdf_capsule							13
-#define _sdf_cylinder						14
-#define _sdf_capped_cone				15
-#define _sdf_solid_angle					16
-#define _sdf_cut_sphere					17
-#define _sdf_cut_hollow_sphere	18
-#define _sdf_death_star					19
-#define _sdf_ellipsoid						20
-#define _sdf_rhombus						21
-#define _sdf_octahedron					22
-#define _sdf_pyramid						23
-#define _sdf_triangle							24						
-#define _sdf_quad								25
-#define _sdf_egg								26
+#define _sdf_cone								7
+#define _sdf_round_cone				8
+#define _sdf_plane								9
+#define _sdf_hex_prism					10
+#define _sdf_tri_prism						11
+#define _sdf_capsule							12
+#define _sdf_cylinder						13
+#define _sdf_capped_cone				14
+#define _sdf_solid_angle					15
+#define _sdf_cut_sphere					16
+#define _sdf_cut_hollow_sphere	17
+#define _sdf_death_star					18
+#define _sdf_ellipsoid						19
+#define _sdf_rhombus						20
+#define _sdf_octahedron					21
+#define _sdf_pyramid						22
+#define _sdf_triangle							23						
+#define _sdf_quad								24
+#define _sdf_egg								25
 
 // Shading Types
 #define _sdf_default_shading		0
@@ -108,7 +108,7 @@ uniform sampler2D tex_toonramp;
 // Data Type Flags
 #define _sdf_entry_len					-2
 #define _sdf_type							-3
-#define _sdf_intersection			-4
+#define _sdf_blending_type			-4
 #define _sdf_pos_0						-5
 #define _sdf_pos_1						-6
 #define _sdf_pos_2						-7
@@ -618,6 +618,9 @@ float grid_filtered( in vec2 p, in vec2 ddx, in vec2 ddy ) {
 #endregion
 #region Shape Distance Loop
 
+// Avoid Excess Calculations in Subsequent Rays 
+bool distance_only = false;
+
 // Return distance to the closest SDF in the Array
 float get_dist(vec3 p) {
 	
@@ -651,7 +654,7 @@ float get_dist(vec3 p) {
 		
 		// All Possible Data Types
 		int sdf_type = _sdf_sphere;
-		int intersection_type = _op_union;
+		int blending_type = _op_union;
 		int pattern_type = _pattern_none;
 		float pattern_scale = 0.1;
 		float pattern_alpha = 1.0;
@@ -687,8 +690,8 @@ float get_dist(vec3 p) {
 				if (flag_value == _sdf_type) { // SDF Type
 					sdf_type = int(sdf_input_array[read_pos + 1]);
 					read_steps = 2;
-				} else if (flag_value == _sdf_intersection) { // Intersection Type
-					intersection_type = int(sdf_input_array[read_pos + 1]);
+				} else if (flag_value == _sdf_blending_type) { // Intersection Type
+					blending_type = int(sdf_input_array[read_pos + 1]);
 					read_steps = 2;
 				} else if (flag_value == _sdf_pos_0) { // Position 0
 					pos_0 = vec3(sdf_input_array[read_pos + 1], 
@@ -759,68 +762,84 @@ float get_dist(vec3 p) {
 		#endregion			
 		#region Shape Distance
 		
-		if (sdf_type <= 14) {
+		if (sdf_type <= 13) {
 			if (sdf_type <= 6) {
-				if (sdf_type == _sdf_sphere) { // Sphere
-					shape_dist = sdf_sphere(p - pos_0, float_0);
-				} else if (sdf_type == _sdf_box) { // Box
-					shape_dist = sdf_box(p - pos_0, scale_0);
-				} else if (sdf_type == _sdf_round_box) { // Round Box
-					shape_dist = sdf_round_box(p - pos_0, scale_0, float_0);
-				} else if (sdf_type == _sdf_box_frame) { // Box Frame
-					shape_dist = sdf_box_frame(p - pos_0, scale_0, float_0);
-				} else if (sdf_type == _sdf_torus) { // Torus
-					shape_dist = sdf_torus(p - pos_0, vec2(float_0, float_1));
-				} else if (sdf_type == _sdf_capped_torus) { // Capped Torus
-					shape_dist = sdf_capped_torus(p - pos_0, vec2(sin(float_0), cos(float_0)), float_1, float_2);
-				} else if (sdf_type == _sdf_link) { // Link
-					shape_dist = sdf_link(p - pos_0, float_0, float_1, float_2);
-				} 
+				if (sdf_type <= 3) {
+					if (sdf_type == _sdf_sphere) { // Sphere
+						shape_dist = sdf_sphere(p - pos_0, float_0);
+					} else if (sdf_type == _sdf_box) { // Box
+						shape_dist = sdf_box(p - pos_0, scale_0);
+					} else if (sdf_type == _sdf_round_box) { // Round Box
+						shape_dist = sdf_round_box(p - pos_0, scale_0, float_0);
+					} else if (sdf_type == _sdf_box_frame) { // Box Frame
+						shape_dist = sdf_box_frame(p - pos_0, scale_0, float_0);
+					}
+				} else {
+					if (sdf_type == _sdf_torus) { // Torus
+						shape_dist = sdf_torus(p - pos_0, vec2(float_0, float_1));
+					} else if (sdf_type == _sdf_capped_torus) { // Capped Torus
+						shape_dist = sdf_capped_torus(p - pos_0, vec2(sin(float_0), cos(float_0)), float_1, float_2);
+					} else if (sdf_type == _sdf_link) { // Link
+						shape_dist = sdf_link(p - pos_0, float_0, float_1, float_2);
+					} 
+				}
 			} else {
-				if (sdf_type == _sdf_cone) { // Cone
-					shape_dist = sdf_cone(p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
-				} else if (sdf_type == _sdf_round_cone) { // Round Cone
-					shape_dist = sdf_round_cone(p, pos_0, pos_1, float_0, float_1);
-				} else if (sdf_type == _sdf_plane) { // Plane
-					shape_dist = sdf_plane(p - pos_0, normalize(pos_1), float_0);
-				} else if (sdf_type == _sdf_hex_prism) { // Hex Prism
-					shape_dist = sdf_hex_prism(p - pos_0, vec2(float_0, float_1));
-				} else if (sdf_type == _sdf_tri_prism) { // Tri Prism 
-					shape_dist = sdf_tri_prism(p - pos_0, vec2(float_0, float_1));	
-				} else if (sdf_type == _sdf_capsule) { // Capsule
-					shape_dist = sdf_capsule(p, pos_0, pos_1, float_0);
-				} else if (sdf_type == _sdf_cylinder) { // Cylinder
-					shape_dist = sdf_cylinder(p, pos_0, pos_1, float_0);
+				if (sdf_type <= 10) {
+					if (sdf_type == _sdf_cone) { // Cone
+						shape_dist = sdf_cone(p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
+					} else if (sdf_type == _sdf_round_cone) { // Round Cone
+						shape_dist = sdf_round_cone(p, pos_0, pos_1, float_0, float_1);
+					} else if (sdf_type == _sdf_plane) { // Plane
+						shape_dist = sdf_plane(p - pos_0, normalize(pos_1), float_0);
+					} else if (sdf_type == _sdf_hex_prism) { // Hex Prism
+						shape_dist = sdf_hex_prism(p - pos_0, vec2(float_0, float_1));
+					}
+				} else {
+					if (sdf_type == _sdf_tri_prism) { // Tri Prism 
+						shape_dist = sdf_tri_prism(p - pos_0, vec2(float_0, float_1));	
+					} else if (sdf_type == _sdf_capsule) { // Capsule
+						shape_dist = sdf_capsule(p, pos_0, pos_1, float_0);
+					} else if (sdf_type == _sdf_cylinder) { // Cylinder
+						shape_dist = sdf_cylinder(p, pos_0, pos_1, float_0);
+					}
 				}
 			}
 		} else {
-			if (sdf_type <= 20) {
-				if (sdf_type == _sdf_capped_cone) { // Capped Cone
-					shape_dist = sdf_capped_cone(p, pos_0, pos_1, float_0, float_1);
-				} else if (sdf_type == _sdf_solid_angle) { // Solid Angle
-					shape_dist = sdf_solid_angle(p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
-				} else if (sdf_type == _sdf_cut_sphere) { // Cut Sphere
-					shape_dist = sdf_cut_sphere(p - pos_0, float_0, float_1);
-				} else if (sdf_type == _sdf_cut_hollow_sphere) { // Cut Hollow Sphere
-					shape_dist = sdf_cut_hollow_sphere(p - pos_0, float_0, float_1, float_2);
-				} else if (sdf_type == _sdf_death_star) { // Death Star
-					shape_dist = sdf_death_star(p - pos_0, float_0, float_1, float_2);
-				} else if (sdf_type == _sdf_ellipsoid) { // Ellipsoid
-					shape_dist = sdf_ellipsoid(p - pos_0, scale_0);
+			if (sdf_type <= 19) {
+				if (sdf_type <= 16) {
+					if (sdf_type == _sdf_capped_cone) { // Capped Cone
+						shape_dist = sdf_capped_cone(p, pos_0, pos_1, float_0, float_1);
+					} else if (sdf_type == _sdf_solid_angle) { // Solid Angle
+						shape_dist = sdf_solid_angle(p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
+					} else if (sdf_type == _sdf_cut_sphere) { // Cut Sphere
+						shape_dist = sdf_cut_sphere(p - pos_0, float_0, float_1);
+					}
+				} else {
+					if (sdf_type == _sdf_cut_hollow_sphere) { // Cut Hollow Sphere
+						shape_dist = sdf_cut_hollow_sphere(p - pos_0, float_0, float_1, float_2);
+					} else if (sdf_type == _sdf_death_star) { // Death Star
+						shape_dist = sdf_death_star(p - pos_0, float_0, float_1, float_2);
+					} else if (sdf_type == _sdf_ellipsoid) { // Ellipsoid
+						shape_dist = sdf_ellipsoid(p - pos_0, scale_0);
+					}
 				}
 			} else {
-				if (sdf_type == _sdf_rhombus) { // Rhombus
-					shape_dist = sdf_rhombus(p - pos_0, scale_0.x, scale_0.y, scale_0.z, float_0);
-				} else if (sdf_type == _sdf_octahedron) { // Octahedron
-					shape_dist = sdf_octahedron(p - pos_0, float_0);
-				} else if (sdf_type == _sdf_pyramid) { // Pyramid
-					shape_dist = sdf_pyramid(p - pos_0, scale_0.x / 2.0, scale_0.y / 2.0, scale_0.z / 2.0);
-				} else if (sdf_type == _sdf_triangle) { // Triangle
-					shape_dist = sdf_triangle(p, pos_0, pos_1, pos_2);
-				} else if (sdf_type == _sdf_quad) { // Quad
-					shape_dist = sdf_quad(p, pos_0, pos_1, pos_2, pos_3);
-				} else if (sdf_type == _sdf_egg) { // Egg
-				shape_dist = sdf_egg(p - pos_0, float_0, float_1, float_2);
+				if (sdf_type <= 22) {
+					if (sdf_type == _sdf_rhombus) { // Rhombus
+						shape_dist = sdf_rhombus(p - pos_0, scale_0.x, scale_0.y, scale_0.z, float_0);
+					} else if (sdf_type == _sdf_octahedron) { // Octahedron
+						shape_dist = sdf_octahedron(p - pos_0, float_0);
+					} else if (sdf_type == _sdf_pyramid) { // Pyramid
+						shape_dist = sdf_pyramid(p - pos_0, scale_0.x / 2.0, scale_0.y / 2.0, scale_0.z / 2.0);
+					}
+				} else {
+					if (sdf_type == _sdf_triangle) { // Triangle
+						shape_dist = sdf_triangle(p, pos_0, pos_1, pos_2);
+					} else if (sdf_type == _sdf_quad) { // Quad
+						shape_dist = sdf_quad(p, pos_0, pos_1, pos_2, pos_3);
+					} else if (sdf_type == _sdf_egg) { // Egg
+					shape_dist = sdf_egg(p - pos_0, float_0, float_1, float_2);
+					}
 				}
 			}
 		}
@@ -830,7 +849,7 @@ float get_dist(vec3 p) {
 		#endregion
 		#region Patterns
 		
-		if (pattern_type != _pattern_none) {
+		if (pattern_type != _pattern_none && !distance_only) {
 			if (pattern_type == _pattern_checkered) { // Checkered
 				color_0 = mix(color_0, color_0 * checkers(p * pattern_scale), pattern_alpha);
 			} else if (pattern_type == _pattern_checkered_filtered) { // Checkered (Filtered)
@@ -869,19 +888,19 @@ float get_dist(vec3 p) {
 		#endregion
 		#region Blend Operation 
 		
-		if (intersection_type == _op_union) { // Union
+		if (blending_type == _op_union) { // Union
 			min_dist = op_union(min_dist, shape_dist);
-		} else if (intersection_type == _op_sub) { // Subtraction
+		} else if (blending_type == _op_sub) { // Subtraction
 			min_dist = op_sub(min_dist, shape_dist);	
-		} else if (intersection_type == _op_int) { // Intersection
+		} else if (blending_type == _op_int) { // Intersection
 			min_dist = op_int(min_dist, shape_dist);	
-		} else if (intersection_type == _op_int) { // Xor
+		} else if (blending_type == _op_int) { // Xor
 			min_dist = op_xor(min_dist, shape_dist);	
-		} else if (intersection_type == _op_smooth_union) { // Smooth Union
+		} else if (blending_type == _op_smooth_union) { // Smooth Union
 			min_dist = op_smooth_union(min_dist, shape_dist, blend_strength);
-		} else if (intersection_type == _op_smooth_sub) { // Smooth Subtraction
+		} else if (blending_type == _op_smooth_sub) { // Smooth Subtraction
 			min_dist = op_smooth_sub(min_dist, shape_dist, blend_strength);
-		} else if (intersection_type == _op_smooth_int) { // Smooth Intersection
+		} else if (blending_type == _op_smooth_int) { // Smooth Intersection
 			min_dist = op_smooth_int(min_dist, shape_dist, blend_strength);
 		}
 					
@@ -1070,14 +1089,17 @@ void main() {
 	
 	// Fragment Position
 	vec3 frag_pos = ro + rd * ray.x;
+
+	// Store Frag Color
+	vec3 frag_color = nearest_color;
+	
+	// Avoid Excess Calculations in Subsequent Rays
+	distance_only = true;
 	
 	// Vectors
 	vec3 l = -light_dir;
 	vec3 n = get_normal(frag_pos);
 	vec3 ref_dir = normalize(reflect(rd, n));
-	
-	// Frag Color
-	vec3 frag_color = nearest_color;
 	
 	// Gamma Correction
 	frag_color	= pow(frag_color, vec3(0.4545));
@@ -1088,25 +1110,25 @@ void main() {
 	// should reflect the extra steps taken with effects enabled
 	
 	// Shadows
-	if (shadows_enabled == 1) {
+	if (shadows_enabled) {
 		float shadow_str = calculate_soft_shadows(ro + rd * ray.x, l, 0.1, 25.0, 0);
 		//frag_color *= shadow_str;
 		frag_color = mix(frag_color, frag_color * shadow_str, 0.5);
 	}
 	
 	// Ambient Occlusion
-	if (ambient_occlusion_enabled == 1) {
+	if (ambient_occlusion_enabled) {
 		float ao_str = calculate_ao(ro + rd * ray.x, n);
 		frag_color = mix(frag_color, frag_color * ao_str, 0.5);
 	}
 	
 	// Fog
-	if (fog_enabled == 1) {
+	if (fog_enabled) {
 		frag_color = apply_fog(frag_color, ray.x);
 	}
 	
 	// Specular
-	if (specular_enabled == 1)  {
+	if (specular_enabled)  {
 				 
 		// Calculate specular component with pow for shininess
 		vec3 specular = vec3(0.5) * pow(max(dot(ref_dir, l), 0.0), 10.0) + frag_color * mix(0.2, 1.2, max(0.0, dot(l, n)));
@@ -1120,7 +1142,7 @@ void main() {
 	#region Render Style
 	
 	// Set color based on the amount of steps taking by the ray
-	if (debug_enabled == 1) {
+	if (debug_enabled) {
 		frag_color = shade_steps(int(ray.y));
 	} else {
 			

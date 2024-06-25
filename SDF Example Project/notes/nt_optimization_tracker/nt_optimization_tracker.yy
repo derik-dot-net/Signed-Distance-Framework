@@ -1,0 +1,11 @@
+{
+  "$GMNotes":"",
+  "%Name":"nt_optimization_tracker",
+  "name":"nt_optimization_tracker",
+  "parent":{
+    "name":"Notes",
+    "path":"folders/Notes.yy",
+  },
+  "resourceType":"GMNotes",
+  "resourceVersion":"2.0",
+}

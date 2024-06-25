@@ -38,6 +38,7 @@
   },
   "name":"SDF Example Project",
   "resources":[
+    {"id":{"name":"nt_optimization_tracker","path":"notes/nt_optimization_tracker/nt_optimization_tracker.yy",},},
     {"id":{"name":"manager","path":"objects/manager/manager.yy",},},
     {"id":{"name":"scene","path":"rooms/scene/scene.yy",},},
     {"id":{"name":"_sdf_batch","path":"scripts/_sdf_batch/_sdf_batch.yy",},},

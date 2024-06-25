@@ -1,0 +1,12 @@
+Just using this to keep an eye out for performance differences with each change
+
+Derik's Work Laptop:
+CPU - Intel(R) Core(TM) i3-3217U CPU @ 1.80GHz
+RAM -	16.0 GB
+GPU - Intel Integrated Graphics
+
+Average FPS: 
+Inital Performance:				< 1 FPS
+Ints Converted to Bools:		< 1 FPS
+Distance-Only Marches:		< 1 FPS
+3rd Shape Dist Branch:		< 1 FPS	
