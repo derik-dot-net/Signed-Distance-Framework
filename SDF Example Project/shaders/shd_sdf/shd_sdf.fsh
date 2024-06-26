@@ -22,7 +22,7 @@ precision highp float;
 #define max_array_length 2000
 
 // Header Data Size to Skip in Shape Loop
-#define array_header_size 13
+#define array_header_size 15
 
 // Grid Pattern Line Thickness Ratio
 #define grid_thickness_ratio 10.0
@@ -54,6 +54,8 @@ vec3 fog_color = vec3(sdf_input_array[7], sdf_input_array[8], sdf_input_array[9]
 float fog_dist = sdf_input_array[10];
 bool debug_enabled = bool(sdf_input_array[11]);
 bool specular_enabled = bool(sdf_input_array[12]);
+float shadow_alpha = sdf_input_array[13];
+float ao_alpha = sdf_input_array [14];
 
 // Toon Shading texture
 uniform sampler2D tex_toonramp;
@@ -668,7 +670,7 @@ float get_dist(vec3 p) {
 		float float_1 = 0.0;
 		float float_2 = 0.0;
 		float float_3 = 0.0;
-		vec3 color_0 = vec3(0.0, 0.2, 1.0);
+		vec3 color_0 = vec3(0.0, 0.0, 0.0);
 		float blend_strength = 0.0;
 		
 		#endregion
@@ -922,6 +924,9 @@ float get_dist(vec3 p) {
 #endregion 
 #region Ray March Loop
 
+// Stores the Total Steps taken across all Rays
+int total_steps = 0;
+
 // Return distance to the nearest SDF and the amount of steps taken
 vec2 ray_march(vec3 ro, vec3 rd) {
 	
@@ -939,6 +944,7 @@ vec2 ray_march(vec3 ro, vec3 rd) {
 
 		// Reset Color for Check
 		nearest_color = vec3(0.0, 0.0, 0.0);
+		nearest_color_blended = vec3(0.0, 0.0, 0.0);
 		
 		// Loop Through Shape Array
 		float dist = get_dist(p);
@@ -958,6 +964,9 @@ vec2 ray_march(vec3 ro, vec3 rd) {
 		}
 		
 	}
+	
+	// Add Steps to Total
+	total_steps += int(steps);
 	
 	// Result
 	return vec2(max(d, 1.), steps);
@@ -1091,7 +1100,9 @@ void main() {
 	vec3 frag_pos = ro + rd * ray.x;
 
 	// Store Frag Color
-	vec3 frag_color = nearest_color;
+	vec3 diffuse_color = nearest_color;
+	vec3 blended_color = nearest_color_blended;
+	vec3 frag_color = diffuse_color; // mix(diffuse_color, blended_color, color_blending_amount) ??? 
 	
 	// Avoid Excess Calculations in Subsequent Rays
 	distance_only = true;
@@ -1102,7 +1113,7 @@ void main() {
 	vec3 ref_dir = normalize(reflect(rd, n));
 	
 	// Gamma Correction
-	frag_color	= pow(frag_color, vec3(0.4545));
+	//frag_color	= pow(frag_color, vec3(0.4545));
 	
 	#region Effects
 	
@@ -1113,13 +1124,13 @@ void main() {
 	if (shadows_enabled) {
 		float shadow_str = calculate_soft_shadows(ro + rd * ray.x, l, 0.1, 25.0, 0);
 		//frag_color *= shadow_str;
-		frag_color = mix(frag_color, frag_color * shadow_str, 0.5);
+		frag_color = mix(frag_color, frag_color * shadow_str, shadow_alpha);
 	}
 	
 	// Ambient Occlusion
 	if (ambient_occlusion_enabled) {
 		float ao_str = calculate_ao(ro + rd * ray.x, n);
-		frag_color = mix(frag_color, frag_color * ao_str, 0.5);
+		frag_color = mix(frag_color, frag_color * ao_str, ao_alpha);
 	}
 	
 	// Fog
@@ -1143,7 +1154,7 @@ void main() {
 	
 	// Set color based on the amount of steps taking by the ray
 	if (debug_enabled) {
-		frag_color = shade_steps(int(ray.y));
+		frag_color = shade_steps(total_steps);
 	} else {
 			
 		// Default Shading is just nearest_color + effects so no need for another conditional here.

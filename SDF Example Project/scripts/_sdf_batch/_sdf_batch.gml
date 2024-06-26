@@ -11,11 +11,13 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	// Light Direction
 	light_vector = [-0.25, -0.25, -1];
 	
-	// Shadows Enabled
+	// Shadows
 	shadows_enabled = false;
+	shadow_alpha = 0.5;
 	
 	// Ambient Occlusion
 	ambient_occlusion_enabled = false;
+	ao_alpha = 0.5;
 	
 	// Fog
 	fog_enabled = false;
@@ -32,7 +34,7 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	_data =			[	shading, light_vector[0], light_vector[1], light_vector[2], 
 								shadows_enabled, ambient_occlusion_enabled, fog_enabled,
 								fog_color[0], fog_color[1], fog_color[2], fog_distance, 
-								debug_enabled, specular_enabled	];
+								debug_enabled, specular_enabled, shadow_alpha, ao_alpha	];	
 								
 	// Build Data Array
 	static _build_data_array =  function() {
@@ -41,7 +43,7 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 		_data = [	shading, light_vector[0], light_vector[1], light_vector[2], 
 							shadows_enabled, ambient_occlusion_enabled, fog_enabled,
 							fog_color[0], fog_color[1], fog_color[2], fog_distance, 
-							debug_enabled, specular_enabled	];				
+							debug_enabled, specular_enabled, shadow_alpha, ao_alpha	];				
 		//show_debug_message("updating array" + string(get_timer()))
 			
 		// Loop Through SDFs
@@ -112,13 +114,15 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	}
 	
 	// Shadows
-	static shadows = function(_enabled) {
+	static shadows = function(_enabled, _alpha = 0.5) {
 		shadows_enabled = _enabled;
+		shadow_alpha = _alpha;
 	}
 		
 	// Ambient Occlusion
-	static ambient_occlusion = function(_enabled) {
+	static ambient_occlusion = function(_enabled, _alpha = 0.5) {
 		ambient_occlusion_enabled = _enabled;
+		ao_alpha = _alpha;
 	}
 	
 	// Fog

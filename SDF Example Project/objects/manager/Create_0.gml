@@ -58,10 +58,10 @@ sdf_batch = sdf_create_batch(sdf_style);
 
 // Render Settings
 sdf_batch.fog(true, 800, 0, 0, 0, true);
-sdf_batch.shadows(true);
-sdf_batch.ambient_occlusion(true);
+sdf_batch.shadows(true, 0.5);
+sdf_batch.ambient_occlusion(true, 0.5);
 sdf_batch.specular(true);
-//sdf_batch.debug(true);
+sdf_batch.debug(true);
 
 // Just a small function for random colors
 function c_rainbow (divider, _offset = 0) {

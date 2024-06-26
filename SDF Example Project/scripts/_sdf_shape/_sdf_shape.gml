@@ -274,15 +274,11 @@ function _sdf_shape() constructor {
 		_set_color(_r, _g, _b, _linear);
 	}
 		
-	// Set the blending operation used by the shape 
-	blending_type = function(_type) {
+	// Set Blending Settings
+	blending = function(_type, _strength = 0) {
 		_set_blending_type(_type);	
-	}
-	
-	// Set the blending strength used by the shape
-	blending_strength = function(_strength) {
 		_set_blend_str(_strength);
-	}
+	}	
 	
 	// Set a pattern for your shape 
 	pattern = function(_type, _scale, _alpha) {
