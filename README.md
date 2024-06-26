@@ -13,8 +13,6 @@ To-do (not in order of priority):
   - Example: ```mesh = sdf_mesh(_vbuffer, _vformat);```
 - Orthographic Support
 - Filtered versions of the Procedural Patterns.
-- Optimize Secondary Distance Passes for Effects
-  - The distance loop can probably be minimalized for shadows, ao, and normal calculation.
 - Antialising
 - Bounding Volumes
 - Pre-pass Optimization
@@ -23,7 +21,8 @@ To-do (not in order of priority):
 - Make the Github page look nice
   - Asset logo Idea: The Gamemaker logo made from SDFs using smooth union, alongside the text "Signed Distance Framework".
   - Add documentation for all functionality, each shapes available properties, and photo examples of what they look like.
-
+- Re-arrange Batch Header to make it less messy
+  
 Editor Idea
 - Nommin's Dear ImGUI 
 - ColMesh with bounding box selection
