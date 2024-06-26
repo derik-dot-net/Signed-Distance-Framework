@@ -1,8 +1,4 @@
 To-do (not in order of priority):
-- Quaternion Rotation
-  - Once a shape has a rotation fuction called on it, only then does it take up extra slots in the array for that data.
-  - This means that all shapes will have a default orientation determined by the output of its distance function.
-  - Example: ```box.rotate(_x_angle, _y_angle, _z_angle);```
 - Secondary Scaling
   - Example: ```sdf_batch.scale(_x_scale, _y_scale, _z_scale);```
   - Could be passed in as part of the batch header.
@@ -22,7 +18,12 @@ To-do (not in order of priority):
   - Asset logo Idea: The Gamemaker logo made from SDFs using smooth union, alongside the text "Signed Distance Framework".
   - Add documentation for all functionality, each shapes available properties, and photo examples of what they look like.
 - Re-arrange Batch Header to make it less messy
-  
+- Add Additional Rotation Functionality
+  - Currently the quaternion is normalized inside of the shader.
+  - Add an XYZ version of: ```.rotate_x(_angle_degrees, _is_local);``` which respects the previously defined rotation.
+  - Perhaps add a ```.rotate_around(_x_origin, _y_origin, _z_origin);``` for people who want to manually set the rotation origin. 
+  - For advanced users add: ```.quaternion(_x, _y, _z, _w);``` for manually handling rotation. 
+    
 Editor Idea
 - Nommin's Dear ImGUI 
 - ColMesh with bounding box selection
