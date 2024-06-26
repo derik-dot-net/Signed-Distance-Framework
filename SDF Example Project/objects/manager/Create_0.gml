@@ -61,7 +61,7 @@ sdf_batch.fog(true, 800, 0, 0, 0, true);
 sdf_batch.shadows(true, 0.5);
 sdf_batch.ambient_occlusion(true, 0.5);
 sdf_batch.specular(true);
-sdf_batch.debug(true);
+sdf_batch.debug(false);
 
 // Just a small function for random colors
 function c_rainbow (divider, _offset = 0) {
@@ -88,6 +88,7 @@ sdf_batch.add(sphere);
 box = sdf_box(-20, 0, 0, 5, 5, 5);
 var col = c_rainbow(5, 20);
 box.color(col[0], col[1], col[2]);
+box.rotation(0, 0, 0);
 sdf_batch.add(box);
 
 // Round Box

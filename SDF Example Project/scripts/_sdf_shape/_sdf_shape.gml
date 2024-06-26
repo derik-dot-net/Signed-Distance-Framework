@@ -106,6 +106,15 @@ function _sdf_shape() constructor {
 					_batch._build_data_array();
 				}
 			break;	
+			case _sdf_rotation:
+			array_push(_data, _sdf_rotation)
+				_li_rotation = _new_index;
+				if _batch != undefined {
+				_bi_rotation = _index_in_batch_data + _li_rotation + 1;
+				array_insert(_batch._data, _bi_rotation, _sdf_rotation, 0, 0, 0, 0);
+				_batch._build_data_array();
+			}
+			break;	
 		}
 	}	
 	_update_modifer_indices = function() {
@@ -120,6 +129,9 @@ function _sdf_shape() constructor {
 		}
 		if _li_pattern != undefined {
 			_bi_pattern = _index_in_batch_data + _li_pattern + 1;
+		}
+		if _li_rotation != undefined {
+			_bi_rotation = _index_in_batch_data + _li_rotation + 1;
 		}
 	}	
 	
@@ -177,6 +189,7 @@ function _sdf_shape() constructor {
 		}
 	}
 	_set_rotation = function(_x, _y, _z, _w) {
+		if _rotation = undefined {_create_modifer_index(_sdf_rotation);}
 		if _batch != undefined {
 			_batch._data[_bi_rotation + 1] = _x;
 			_batch._data[_bi_rotation + 2] = _y;
@@ -283,6 +296,21 @@ function _sdf_shape() constructor {
 	// Set a pattern for your shape 
 	pattern = function(_type, _scale, _alpha) {
 		_set_pattern(_type, _scale, _alpha);
+	}
+	
+	// Set Rotation for your Shape
+	rotation = function(_x_angle, _y_angle, _z_angle) {
+	    var cr = dcos(_x_angle * 0.5);
+	    var sr = dsin(_x_angle * 0.5);
+	    var cp = dcos(_y_angle * 0.5);
+	    var sp = dsin(_y_angle * 0.5);
+	    var cy = dcos(_z_angle * 0.5);
+	    var sy = dsin(_z_angle* 0.5);
+	    var qx = sr * cp * cy - cr * sp * sy;
+	    var qy = cr * sp * cy + sr * cp * sy;
+	    var qz = cr * cp * sy - sr * sp * cy;
+	    var qw = cr * cp * cy + sr * sp * sy;
+		_set_rotation(qx, qy, qz, qw);
 	}
 	
 	#endregion 

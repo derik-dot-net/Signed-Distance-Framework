@@ -150,14 +150,12 @@ float dot2( in vec3 v ) { return dot(v,v); }
 float ndot( in vec2 a, in vec2 b ) { return a.x*b.x - a.y*b.y; }
 
 // Rotate with Quaternion
-vec3 rotate_quaternion(vec3 vec, vec4 q)
-{
+vec3 rotate_quaternion(vec3 vec, vec4 q) {
 	return vec + 2.0*cross(cross(vec, q.xyz ) + q.w*vec, q.xyz);
 }
 
 // Transform using Quaternion
-vec3 transform_vertex(vec3 vec, vec3 pos, vec4 rot, vec3 scale)
-{
+vec3 transform_vertex(vec3 vec, vec3 pos, vec4 rot, vec3 scale) {
 	vec3 vertex = rotate_quaternion(vec * scale, rot);
 	return vertex + pos;
 }
@@ -672,6 +670,8 @@ float get_dist(vec3 p) {
 		float float_3 = 0.0;
 		vec3 color_0 = vec3(0.0, 0.0, 0.0);
 		float blend_strength = 0.0;
+		vec3 rotated_p = p;
+		bool has_rotation = false;
 		
 		#endregion
 		#region Read Through Entry Data
@@ -727,6 +727,8 @@ float get_dist(vec3 p) {
 												  sdf_input_array[read_pos + 2], 
 												  sdf_input_array[read_pos + 3],
 												  sdf_input_array[read_pos + 4]);
+					rotated_p = transform_vertex(p - pos_0, pos_0, normalize(rotation), vec3(1.0, 1.0, 1.0));
+					has_rotation = true;
 					read_steps = 5;
 				} else if (flag_value == _sdf_float_0) { // Float 0
 					float_0 = sdf_input_array[read_pos + 1];
@@ -764,45 +766,51 @@ float get_dist(vec3 p) {
 		#endregion			
 		#region Shape Distance
 		
+		// Apply Rotation
+		vec3 shape_p = p;
+		if (has_rotation) {
+			shape_p = rotated_p;
+		}
+		
 		if (sdf_type <= 13) {
 			if (sdf_type <= 6) {
 				if (sdf_type <= 3) {
 					if (sdf_type == _sdf_sphere) { // Sphere
-						shape_dist = sdf_sphere(p - pos_0, float_0);
+						shape_dist = sdf_sphere(shape_p - pos_0, float_0);
 					} else if (sdf_type == _sdf_box) { // Box
-						shape_dist = sdf_box(p - pos_0, scale_0);
+						shape_dist = sdf_box(shape_p - pos_0, scale_0);
 					} else if (sdf_type == _sdf_round_box) { // Round Box
-						shape_dist = sdf_round_box(p - pos_0, scale_0, float_0);
+						shape_dist = sdf_round_box(shape_p - pos_0, scale_0, float_0);
 					} else if (sdf_type == _sdf_box_frame) { // Box Frame
-						shape_dist = sdf_box_frame(p - pos_0, scale_0, float_0);
+						shape_dist = sdf_box_frame(shape_p - pos_0, scale_0, float_0);
 					}
 				} else {
 					if (sdf_type == _sdf_torus) { // Torus
-						shape_dist = sdf_torus(p - pos_0, vec2(float_0, float_1));
+						shape_dist = sdf_torus(shape_p - pos_0, vec2(float_0, float_1));
 					} else if (sdf_type == _sdf_capped_torus) { // Capped Torus
-						shape_dist = sdf_capped_torus(p - pos_0, vec2(sin(float_0), cos(float_0)), float_1, float_2);
+						shape_dist = sdf_capped_torus(shape_p - pos_0, vec2(sin(float_0), cos(float_0)), float_1, float_2);
 					} else if (sdf_type == _sdf_link) { // Link
-						shape_dist = sdf_link(p - pos_0, float_0, float_1, float_2);
+						shape_dist = sdf_link(shape_p - pos_0, float_0, float_1, float_2);
 					} 
 				}
 			} else {
 				if (sdf_type <= 10) {
 					if (sdf_type == _sdf_cone) { // Cone
-						shape_dist = sdf_cone(p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
+						shape_dist = sdf_cone(shape_p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
 					} else if (sdf_type == _sdf_round_cone) { // Round Cone
-						shape_dist = sdf_round_cone(p, pos_0, pos_1, float_0, float_1);
+						shape_dist = sdf_round_cone(shape_p, pos_0, pos_1, float_0, float_1);
 					} else if (sdf_type == _sdf_plane) { // Plane
-						shape_dist = sdf_plane(p - pos_0, normalize(pos_1), float_0);
+						shape_dist = sdf_plane(shape_p - pos_0, normalize(pos_1), float_0);
 					} else if (sdf_type == _sdf_hex_prism) { // Hex Prism
-						shape_dist = sdf_hex_prism(p - pos_0, vec2(float_0, float_1));
+						shape_dist = sdf_hex_prism(shape_p - pos_0, vec2(float_0, float_1));
 					}
 				} else {
 					if (sdf_type == _sdf_tri_prism) { // Tri Prism 
-						shape_dist = sdf_tri_prism(p - pos_0, vec2(float_0, float_1));	
+						shape_dist = sdf_tri_prism(shape_p - pos_0, vec2(float_0, float_1));	
 					} else if (sdf_type == _sdf_capsule) { // Capsule
-						shape_dist = sdf_capsule(p, pos_0, pos_1, float_0);
+						shape_dist = sdf_capsule(shape_p, pos_0, pos_1, float_0);
 					} else if (sdf_type == _sdf_cylinder) { // Cylinder
-						shape_dist = sdf_cylinder(p, pos_0, pos_1, float_0);
+						shape_dist = sdf_cylinder(shape_p, pos_0, pos_1, float_0);
 					}
 				}
 			}
@@ -810,37 +818,37 @@ float get_dist(vec3 p) {
 			if (sdf_type <= 19) {
 				if (sdf_type <= 16) {
 					if (sdf_type == _sdf_capped_cone) { // Capped Cone
-						shape_dist = sdf_capped_cone(p, pos_0, pos_1, float_0, float_1);
+						shape_dist = sdf_capped_cone(shape_p, pos_0, pos_1, float_0, float_1);
 					} else if (sdf_type == _sdf_solid_angle) { // Solid Angle
-						shape_dist = sdf_solid_angle(p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
+						shape_dist = sdf_solid_angle(shape_p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
 					} else if (sdf_type == _sdf_cut_sphere) { // Cut Sphere
-						shape_dist = sdf_cut_sphere(p - pos_0, float_0, float_1);
+						shape_dist = sdf_cut_sphere(shape_p - pos_0, float_0, float_1);
 					}
 				} else {
 					if (sdf_type == _sdf_cut_hollow_sphere) { // Cut Hollow Sphere
-						shape_dist = sdf_cut_hollow_sphere(p - pos_0, float_0, float_1, float_2);
+						shape_dist = sdf_cut_hollow_sphere(shape_p - pos_0, float_0, float_1, float_2);
 					} else if (sdf_type == _sdf_death_star) { // Death Star
-						shape_dist = sdf_death_star(p - pos_0, float_0, float_1, float_2);
+						shape_dist = sdf_death_star(shape_p - pos_0, float_0, float_1, float_2);
 					} else if (sdf_type == _sdf_ellipsoid) { // Ellipsoid
-						shape_dist = sdf_ellipsoid(p - pos_0, scale_0);
+						shape_dist = sdf_ellipsoid(shape_p - pos_0, scale_0);
 					}
 				}
 			} else {
 				if (sdf_type <= 22) {
 					if (sdf_type == _sdf_rhombus) { // Rhombus
-						shape_dist = sdf_rhombus(p - pos_0, scale_0.x, scale_0.y, scale_0.z, float_0);
+						shape_dist = sdf_rhombus(shape_p - pos_0, scale_0.x, scale_0.y, scale_0.z, float_0);
 					} else if (sdf_type == _sdf_octahedron) { // Octahedron
-						shape_dist = sdf_octahedron(p - pos_0, float_0);
+						shape_dist = sdf_octahedron(shape_p - pos_0, float_0);
 					} else if (sdf_type == _sdf_pyramid) { // Pyramid
-						shape_dist = sdf_pyramid(p - pos_0, scale_0.x / 2.0, scale_0.y / 2.0, scale_0.z / 2.0);
+						shape_dist = sdf_pyramid(shape_p - pos_0, scale_0.x / 2.0, scale_0.y / 2.0, scale_0.z / 2.0);
 					}
 				} else {
 					if (sdf_type == _sdf_triangle) { // Triangle
-						shape_dist = sdf_triangle(p, pos_0, pos_1, pos_2);
+						shape_dist = sdf_triangle(shape_p, pos_0, pos_1, pos_2);
 					} else if (sdf_type == _sdf_quad) { // Quad
-						shape_dist = sdf_quad(p, pos_0, pos_1, pos_2, pos_3);
+						shape_dist = sdf_quad(shape_p, pos_0, pos_1, pos_2, pos_3);
 					} else if (sdf_type == _sdf_egg) { // Egg
-					shape_dist = sdf_egg(p - pos_0, float_0, float_1, float_2);
+					shape_dist = sdf_egg(shape_p - pos_0, float_0, float_1, float_2);
 					}
 				}
 			}
@@ -1102,7 +1110,7 @@ void main() {
 	// Store Frag Color
 	vec3 diffuse_color = nearest_color;
 	vec3 blended_color = nearest_color_blended;
-	vec3 frag_color = diffuse_color; // mix(diffuse_color, blended_color, color_blending_amount) ??? 
+	vec3 frag_color = nearest_color_blended; // mix(diffuse_color, blended_color, color_blending_amount) ??? 
 	
 	// Avoid Excess Calculations in Subsequent Rays
 	distance_only = true;

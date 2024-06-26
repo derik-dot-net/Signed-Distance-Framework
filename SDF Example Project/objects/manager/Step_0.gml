@@ -18,9 +18,9 @@ proj_mat = matrix_build_projection_perspective_fov(fov, aspect, znear, zfar);
 #endregion
 #region Shape Updates
 
-//var test_anim = current_time/2000;
+var test_anim = current_time/10;
 //sphere.position(sin(test_anim) * 40, 0, 10);
 //box.position(sin(test_anim) * -40, 0, 10);
 //sphere.radius(7.5 + (sin(current_time/500) * 2.5));
-
+box.rotation(test_anim, test_anim, test_anim);
 #endregion
