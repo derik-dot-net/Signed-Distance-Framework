@@ -23,6 +23,8 @@ To-do (not in order of priority):
   - Add an XYZ version of: ```.rotate_x(_angle_degrees, _is_local);``` which respects the previously defined rotation.
   - Perhaps add a ```.rotate_around(_x_origin, _y_origin, _z_origin);``` for people who want to manually set the rotation origin. 
   - For advanced users add: ```.quaternion(_x, _y, _z, _w);``` for manually handling rotation. 
+- Make Render Settings Dynamic
+  - Currently they only work when set in the create event prior to a shape being added, just need to make them write to the array.
     
 Editor Idea
 - Nommin's Dear ImGUI 
