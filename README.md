@@ -7,7 +7,6 @@ To-do (not in order of priority):
 - Render Shapes without Batch
 - vBuffer Parser (Mesh to SDF Triangles)
   - Example: ```mesh = sdf_mesh(_vbuffer, _vformat);```
-- Orthographic Support
 - Filtered versions of the Procedural Patterns.
 - Antialising
 - Bounding Volumes
