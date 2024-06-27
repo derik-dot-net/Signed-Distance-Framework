@@ -13,7 +13,8 @@ aspect = window_get_width() / window_get_height();
 
 // Matrices
 view_mat = matrix_build_lookat(cam_x, cam_y, cam_z, target_x, target_y, target_z, xup, yup, zup);
-proj_mat = matrix_build_projection_perspective_fov(fov, aspect, znear, zfar);
+//proj_mat = matrix_build_projection_perspective_fov(fov, aspect, znear, zfar);
+proj_mat = matrix_build_projection_ortho(120, 80, znear - 1000, zfar);
 
 #endregion
 #region Shape Updates

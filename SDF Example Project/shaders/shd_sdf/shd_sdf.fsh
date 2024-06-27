@@ -1086,17 +1086,18 @@ vec3 shade_steps(int n) {
 
 void main() {
 	
-	// if orthographic
-	// vec3 ro = camPos +
-	// vec3(u_viewMat[0].x, u_viewMat[1].x, u_viewMat[2].x) * v_vScreenPos.x / u_projMat[0].x +
-	// vec3(u_viewMat[0].y, u_viewMat[1].y, u_viewMat[2].y) * v_vScreenPos.y / u_projMat[1].y;
-	// vec3 rd = vec3(viewZ.xyz);
-	
-	// Ray Origin
-	vec3 ro = cam_pos;
-	
-	// Ray Direction
-	vec3 rd = normalize((vec4(v_vScreenPos * -fov_aspect, 1., 0.) * view_mat).xyz);
+	// Ray Origin and Ray Direction
+	vec3 ro;
+	vec3 rd; 
+	if (proj_mat[3].w == 1.0) { // Orthographic
+		ro = cam_pos +
+		vec3(view_mat[0].x, view_mat[1].x, view_mat[2].x) * -v_vScreenPos.x / proj_mat[0].x +
+		vec3(view_mat[0].y, view_mat[1].y, view_mat[2].y) * -v_vScreenPos.y / proj_mat[1].y;
+		rd = vec3(view_z.xyz);
+	} else{ // Perspective
+		ro = cam_pos;
+		rd = normalize((vec4(v_vScreenPos * -fov_aspect, 1., 0.) * view_mat).xyz);
+	}
 	
 	// Cast Ray
 	vec2 ray = ray_march(ro, rd);

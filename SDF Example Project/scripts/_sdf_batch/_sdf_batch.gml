@@ -44,6 +44,7 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 							shadows_enabled, ambient_occlusion_enabled, fog_enabled,
 							fog_color[0], fog_color[1], fog_color[2], fog_distance, 
 							debug_enabled, specular_enabled, shadow_alpha, ao_alpha	];				
+							
 		//show_debug_message("updating array" + string(get_timer()))
 			
 		// Loop Through SDFs
@@ -67,7 +68,7 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	
 	// Render SDF Batch
 	static draw = function(_view_mat = matrix_get(matrix_view), _proj_mat = matrix_get(matrix_projection)) {
-				
+			
 		// Set Shader
 		shader_set(shd_sdf);
 		
@@ -90,11 +91,19 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 		}
 		
 		// Draw Basic Primitive Covering the Screen
+		var target_divisions = 32;
 		draw_primitive_begin(pr_trianglestrip);
-		draw_vertex(1, -1);
-		draw_vertex(-1, -1);
-		draw_vertex(1, 1);
-		draw_vertex(-1, 1);
+		var _aspect = abs(_proj_mat[5]) / _proj_mat[0];
+		var target_xspacing = floor(_aspect * target_divisions);
+		var target_yspacing = 2 / target_divisions;
+		for (var i = -1; i < 1; i += target_xspacing) {
+			for (var j = -1; j < 1; j += target_yspacing) {
+			draw_vertex(i + target_xspacing, j);
+			draw_vertex(i, j);
+			draw_vertex(i + target_xspacing, j + target_yspacing);
+			draw_vertex(i, j + target_yspacing);
+			}
+		}
 		draw_primitive_end();
 		
 		// Reset Shader 
