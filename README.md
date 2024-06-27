@@ -10,7 +10,7 @@ To-do (not in order of priority):
 - Filtered versions of the Procedural Patterns.
 - Antialising
 - Bounding Volumes
-- Pre-pass Optimization
+- Cone-Marching Pre-pass
 - 3D SDF Text
   - This is just a loose idea, but I imagine this is likely possible, though I'm unsure exactly how easy it would be to do. 
 - Make the Github page look nice
