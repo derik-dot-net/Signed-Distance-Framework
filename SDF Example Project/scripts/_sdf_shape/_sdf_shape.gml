@@ -25,7 +25,6 @@ function _sdf_shape() constructor {
 	_index_in_batch = undefined;
 	_index_in_batch_data = undefined;
 	
-	
 	// Local Index for Shape Data
 	_li_type = undefined;
 	_li_blending = undefined;

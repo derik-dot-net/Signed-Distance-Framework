@@ -30,11 +30,16 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	// Debug Mode
 	debug_enabled = false;
 	
+	// Render Target
+	vbuff_target = undefined;
+	target_subdivisions = 32;
+	
 	// Insert Header Data
 	_data =			[	shading, light_vector[0], light_vector[1], light_vector[2], 
 								shadows_enabled, ambient_occlusion_enabled, fog_enabled,
 								fog_color[0], fog_color[1], fog_color[2], fog_distance, 
-								debug_enabled, specular_enabled, shadow_alpha, ao_alpha	];	
+								debug_enabled, specular_enabled, shadow_alpha, ao_alpha, 
+								target_subdivisions	];	
 								
 	// Build Data Array
 	static _build_data_array =  function() {
@@ -43,10 +48,9 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 		_data = [	shading, light_vector[0], light_vector[1], light_vector[2], 
 							shadows_enabled, ambient_occlusion_enabled, fog_enabled,
 							fog_color[0], fog_color[1], fog_color[2], fog_distance, 
-							debug_enabled, specular_enabled, shadow_alpha, ao_alpha	];				
-							
-		//show_debug_message("updating array" + string(get_timer()))
-			
+							debug_enabled, specular_enabled, shadow_alpha, ao_alpha, 
+							target_subdivisions	];			
+									
 		// Loop Through SDFs
 		for (var i = 0; i < array_length(sdf_array); i++) {
 				
@@ -63,6 +67,40 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 			
 	}
 
+	// Generate Render Target
+	static _build_target_vbuffer = function(_proj_mat) {
+		
+		// Create Buffer
+		vbuff_target = vertex_create_buffer();
+		
+		// Begin vBuffer Creation 
+		vertex_begin(vbuff_target, global._sdf_vformat);
+		
+		// Draw Subdivided Primitive Covering the Screen
+		var _aspect = abs(_proj_mat[5]) / _proj_mat[0];
+		var target_xspacing = (2 / floor(target_subdivisions * _aspect));
+		var target_yspacing = (2 / target_subdivisions);
+		for (var i = -1; i < 1; i += target_xspacing) {
+		    for (var j = -1; j < 1; j += target_yspacing) {
+		        var x0 = i;
+		        var x1 = i + target_xspacing;
+		        var y0 = j;
+		        var y1 = j + target_yspacing;
+		        vertex_position(vbuff_target, x1, y0);
+		        vertex_position(vbuff_target, x0, y0);
+		        vertex_position(vbuff_target, x1, y1);
+		        vertex_position(vbuff_target, x0, y0);
+		        vertex_position(vbuff_target, x0, y1);
+		        vertex_position(vbuff_target, x1, y1);
+		    }
+		}
+		
+		// End vBuffer Creation
+		vertex_end(vbuff_target);
+		vertex_freeze(vbuff_target);
+		
+	}
+	
 	#endregion
 	#region Common Functions
 	
@@ -73,13 +111,17 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 		shader_set(shd_sdf);
 		
 		// Pass in Camera Matrices
+		shader_set_uniform_f_array(global._u_vs_sdf_view_mat, _view_mat);
+		shader_set_uniform_f_array(global._u_vs_sdf_proj_mat, _proj_mat);
 		shader_set_uniform_f_array(global._u_sdf_view_mat, _view_mat);
 		shader_set_uniform_f_array(global._u_sdf_proj_mat, _proj_mat);
+		shader_set_uniform_f(global._u_vs_tan_fov, tan(degtorad(60 / 2)));
 		
 		// Add Flag to End of Array
 		array_push(_data, _sdf_array_end_flag);
 		
 		// Pass in Input Arrays
+		shader_set_uniform_f_array(global._u_vs_sdf_input_array, _data);
 		shader_set_uniform_f_array(global._u_sdf_input_array, _data);
 		
 		// Remove Flag From End of Array
@@ -90,21 +132,13 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 			texture_set_stage(global._u_toonramp, global._sdf_tex_toonramp);
 		}
 		
-		// Draw Basic Primitive Covering the Screen
-		var target_divisions = 32;
-		draw_primitive_begin(pr_trianglestrip);
-		var _aspect = abs(_proj_mat[5]) / _proj_mat[0];
-		var target_xspacing = floor(_aspect * target_divisions);
-		var target_yspacing = 2 / target_divisions;
-		for (var i = -1; i < 1; i += target_xspacing) {
-			for (var j = -1; j < 1; j += target_yspacing) {
-			draw_vertex(i + target_xspacing, j);
-			draw_vertex(i, j);
-			draw_vertex(i + target_xspacing, j + target_yspacing);
-			draw_vertex(i, j + target_yspacing);
-			}
+		// Check for Render Target
+		if vbuff_target = undefined {
+			_build_target_vbuffer(_proj_mat);	
 		}
-		draw_primitive_end();
+		
+		// Draw to Render Target
+		vertex_submit(vbuff_target, pr_trianglelist, -1);
 		
 		// Reset Shader 
 		shader_reset();

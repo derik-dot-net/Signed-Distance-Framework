@@ -1,6 +1,6 @@
 #region Render Scene
 
-surface_resize(application_surface, 240, 160);
+//surface_resize(application_surface, 240, 160);
 
 // Set Camera Matrices
 camera_set_view_mat(cam, view_mat);

@@ -79,6 +79,15 @@ global._u_sdf_view_mat		= shader_get_uniform(shd_sdf, "view_mat");
 global._u_sdf_proj_mat			= shader_get_uniform(shd_sdf, "proj_mat");
 global._u_sdf_input_array	= shader_get_uniform(shd_sdf, "sdf_input_array");
 global._u_toonramp				= shader_get_sampler_index(shd_sdf, "tex_toonramp");
+global._u_vs_sdf_input_array		= shader_get_uniform(shd_sdf, "vs_sdf_input_array");
+global._u_vs_sdf_view_mat			= shader_get_uniform(shd_sdf, "vs_view_mat");
+global._u_vs_sdf_proj_mat			= shader_get_uniform(shd_sdf, "vs_proj_mat");
+global._u_vs_tan_fov						= shader_get_uniform(shd_sdf, "vs_tan_fov");
+
+// Vertex Buffer Format
+vertex_format_begin();
+vertex_format_add_position();
+global._sdf_vformat = vertex_format_end();
 
 // Notes
 // A "Modifier" is anything that is not a default data type to the shape.

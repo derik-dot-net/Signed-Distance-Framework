@@ -22,7 +22,7 @@ precision highp float;
 #define max_array_length 2000
 
 // Header Data Size to Skip in Shape Loop
-#define array_header_size 15
+#define array_header_size 16
 
 // Grid Pattern Line Thickness Ratio
 #define grid_thickness_ratio 10.0
@@ -33,6 +33,8 @@ precision highp float;
 // Varyings
 varying vec2 v_vScreenPos;
 varying mat4 world_mat;
+varying float cone_dist_traveled;
+varying float cone_steps;
 
 #endregion
 #region Uniforms
@@ -853,9 +855,7 @@ float get_dist(vec3 p) {
 				}
 			}
 		}
-		//Cannot combine this, no idea why, causes it to fail to compile
-		
-		
+			
 		#endregion
 		#region Patterns
 		
@@ -939,13 +939,13 @@ int total_steps = 0;
 vec2 ray_march(vec3 ro, vec3 rd) {
 	
 	// Store Total Distance Traveled
-	float d = 0.0;
+	float d = cone_dist_traveled;
 		
 	// Store Total Steps Traveled
 	float steps = float(max_steps);
 	
 	//Ray March
-	for (int i = 0; i < max_steps; i ++) {
+	for (int i = int(cone_steps); i < max_steps; i ++) {
 		
 		// Increment Ray in in the Ray Direction
 		vec3 p = ro + rd * d;
@@ -1094,7 +1094,7 @@ void main() {
 		vec3(view_mat[0].x, view_mat[1].x, view_mat[2].x) * -v_vScreenPos.x / proj_mat[0].x +
 		vec3(view_mat[0].y, view_mat[1].y, view_mat[2].y) * -v_vScreenPos.y / proj_mat[1].y;
 		rd = vec3(view_z.xyz);
-	} else{ // Perspective
+	} else { // Perspective
 		ro = cam_pos;
 		rd = normalize((vec4(v_vScreenPos * -fov_aspect, 1., 0.) * view_mat).xyz);
 	}
@@ -1103,7 +1103,7 @@ void main() {
 	vec2 ray = ray_march(ro, rd);
 	
 	// Discard if the Ray Misses
-	if (ray.x >= max_dist) {discard;}
+	if (ray.x >= max_dist || cone_dist_traveled >= max_dist) {discard;}
 	
 	// Fragment Position
 	vec3 frag_pos = ro + rd * ray.x;
@@ -1122,7 +1122,7 @@ void main() {
 	vec3 ref_dir = normalize(reflect(rd, n));
 	
 	// Gamma Correction
-	//frag_color	= pow(frag_color, vec3(0.4545));
+	frag_color	= pow(frag_color, vec3(0.4545));
 	
 	#region Effects
 	
@@ -1163,7 +1163,7 @@ void main() {
 	
 	// Set color based on the amount of steps taking by the ray
 	if (debug_enabled) {
-		frag_color = shade_steps(total_steps);
+		frag_color = shade_steps(int(cone_steps));
 	} else {
 			
 		// Default Shading is just nearest_color + effects so no need for another conditional here.
