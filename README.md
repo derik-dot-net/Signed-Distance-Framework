@@ -8,7 +8,7 @@ To-do (not in order of priority):
 - vBuffer Parser (Mesh to SDF Triangles)
   - Example: ```mesh = sdf_mesh(_vbuffer, _vformat);```
 - Filtered versions of the Procedural Patterns.
-- Antialising
+- Anti Aliasing
 - Bounding Volumes
 - Cone-Marching Pre-pass
 - 3D SDF Text
