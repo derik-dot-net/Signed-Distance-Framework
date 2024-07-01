@@ -86,3 +86,8 @@ global._u_toonramp				= shader_get_sampler_index(shd_sdf, "tex_toonramp");
 // We keep the defaults minimal for optimization but also so that down
 // the line we can add functions that'll set values for either the entire batch,
 // or for a defined part of the batch.
+
+// Vertex Buffer Format
+vertex_format_begin();
+vertex_format_add_position();
+global._sdf_vformat = vertex_format_end();

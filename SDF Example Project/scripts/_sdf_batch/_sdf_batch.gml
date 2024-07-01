@@ -30,6 +30,9 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	// Debug Mode
 	debug_enabled = false;
 	
+	// Render Target
+	vbuff_target = undefined;
+	
 	// Insert Header Data
 	_data =			[	shading, light_vector[0], light_vector[1], light_vector[2], 
 								shadows_enabled, ambient_occlusion_enabled, fog_enabled,
@@ -63,6 +66,27 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 			
 	}
 
+	// Generate Render Target
+	static _build_target_vbuffer = function() {
+		
+		// Create Buffer
+		vbuff_target = vertex_create_buffer();
+		
+		// Begin vBuffer Creation 
+		vertex_begin(vbuff_target, global._sdf_vformat);
+		
+		// Add Vertices
+		vertex_position(vbuff_target, 1, -1);
+		vertex_position(vbuff_target, -1, -1);
+		vertex_position(vbuff_target, 1, 1);
+		vertex_position(vbuff_target, -1, 1);
+		
+		// End vBuffer Creation
+		vertex_end(vbuff_target);
+		vertex_freeze(vbuff_target);
+		
+	}
+	
 	#endregion
 	#region Common Functions
 	
@@ -90,21 +114,11 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 			texture_set_stage(global._u_toonramp, global._sdf_tex_toonramp);
 		}
 		
-		// Draw Basic Primitive Covering the Screen
-		var target_divisions = 32;
-		draw_primitive_begin(pr_trianglestrip);
-		var _aspect = abs(_proj_mat[5]) / _proj_mat[0];
-		var target_xspacing = floor(_aspect * target_divisions);
-		var target_yspacing = 2 / target_divisions;
-		for (var i = -1; i < 1; i += target_xspacing) {
-			for (var j = -1; j < 1; j += target_yspacing) {
-			draw_vertex(i + target_xspacing, j);
-			draw_vertex(i, j);
-			draw_vertex(i + target_xspacing, j + target_yspacing);
-			draw_vertex(i, j + target_yspacing);
-			}
+		// Render to Target
+		if vbuff_target = undefined {
+			_build_target_vbuffer();
 		}
-		draw_primitive_end();
+		vertex_submit(vbuff_target, pr_trianglestrip, -1);
 		
 		// Reset Shader 
 		shader_reset();
