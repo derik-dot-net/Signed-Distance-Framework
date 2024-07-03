@@ -29,6 +29,12 @@ function __sdf_round_box(_x, _y, _z, _x_scale, _y_scale, _z_scale, _rounding) : 
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var _q = _sub(_abs(_sub(_p, _pos_0)), _scale_0);
+		return _length(_max(_q, 0.0)) +  min(max(_q[0], max(_q[1], _q[2])), 0.0) - _float_0;
+	}
+	
 	#endregion
 	#region Functions
 	

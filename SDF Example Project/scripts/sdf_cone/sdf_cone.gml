@@ -28,7 +28,22 @@ function __sdf_sdf_cone(_x, _y, _z, _angle_degrees, _height) : _sdf_shape() cons
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 		_bi_float_1 = _index_in_batch_data + _li_float_1 + 1;	
 	}
-	
+		
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_p, _pos_0);
+		var c = [sin(_float_0), cos(_float_0)];
+		var h = _float_1;
+		var q = _mul([c[0]/c[1], -1], h);
+		var w = [_length([p[0], p[2]]), p[1]];
+		var a = _sub(w, _mul(q, clamp(_dot(w, q) / _dot(q, q), 0.0, 1.0)));
+		var b = _sub(w, _mul(q, [clamp(w[0]/q[0], 0.0, 1.0), 1.0]));
+		var k = sign(q[1]);
+		var d = min(_dot(a, a), _dot(b, b));
+		var s = max(k * (w[0] * q[1] - w[1] * q[0]), k * (w[1] - q[1]));
+		return sqrt(d) * sign(s);
+	}
+
 	#endregion
 	#region Functions
 	

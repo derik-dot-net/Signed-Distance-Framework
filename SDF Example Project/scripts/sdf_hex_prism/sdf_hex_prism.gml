@@ -28,6 +28,19 @@ function __sdf_hex_prism(_x, _y, _z, _width, _height) : _sdf_shape() constructor
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 		_bi_float_1 = _index_in_batch_data + _li_float_1 + 1;	
 	}
+
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_p, _pos_0);
+		var h = [_float_0, _float_1];
+		var k = [-0.8660254, 0.5, 0.57735];
+		p = _abs(p);
+		var pxy = _mul([k[0], k[1]], 2.0*min(_dot([k[0], k[1]], [p[0], p[1]]), 0.0));
+		p[0] -= pxy[0];
+		p[1] -= pxy[1];
+		var d = [_length(_sub([p[0], p[1]], [clamp(p[0],-k[2]*h[0],k[2]*h[0]), h[0]])) * sign(p[1] - h[0]), p[2] - h[1]];
+		return min(max(d[0], d[1]), 0.0) + _length(_max(d, 0.0));
+	}
 	
 	#endregion
 	#region Functions

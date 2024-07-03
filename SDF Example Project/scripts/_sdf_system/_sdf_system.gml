@@ -91,3 +91,27 @@ global._u_toonramp				= shader_get_sampler_index(shd_sdf, "tex_toonramp");
 vertex_format_begin();
 vertex_format_add_position();
 global._sdf_vformat = vertex_format_end();
+
+// Converts 2D Coordinates to 3D Space
+function _sdf_2d_to_3d(V, P, _x, _y)  {
+	var mx = -(2 * (_x / window_get_width() - .5) / P[0]);
+	var my = (2 * (_y / window_get_height() - .5) / P[5]);
+	var camX = - (V[12] * V[0] + V[13] * V[1] + V[14] * V[2]);
+	var camY = - (V[12] * V[4] + V[13] * V[5] + V[14] * V[6]);
+	var camZ = - (V[12] * V[8] + V[13] * V[9] + V[14] * V[10]);
+	if (P[15] == 0) {
+	    return [V[2]  + mx * V[0] + my * V[1],
+	            V[6]  + mx * V[4] + my * V[5],
+	            V[10] + mx * V[8] + my * V[9],
+	            camX,
+	            camY,
+	            camZ];
+	} else {  
+	    return [V[2],
+	            V[6],
+	            V[10],
+	            camX + mx * V[0] + my * V[1],
+	            camY + mx * V[4] + my * V[5],
+	            camZ + mx * V[8] + my * V[9]];
+	}
+}

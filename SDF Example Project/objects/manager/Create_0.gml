@@ -78,6 +78,12 @@ plane.color(0.8, 0.8, 0.8, true);
 plane.pattern(sdf_pattern_checkered, 0.1, 0.5);
 sdf_batch.add(plane);
 
+
+// Mouse Pointer Sphere (Raycasting)
+mouse_sphere = sdf_sphere(0, 0, 0, 1);
+mouse_sphere.color(1, 0, 0, true);
+sdf_batch.add(mouse_sphere);
+
 // Sphere
 sphere = sdf_sphere(-40, 0, 0, 5);
 var col = c_rainbow(5, 10);
@@ -140,7 +146,7 @@ hex_prism.color(col[0], col[1], col[2]);
 sdf_batch.add(hex_prism);
 
 // Tri Prism
-tri_prism = sdf_triangle_prism(-40, 20, 5, 5, 5);
+tri_prism = sdf_tri_prism(-40, 20, 5, 5, 5);
 var col = c_rainbow(5, 100);
 tri_prism.color(col[0], col[1], col[2]);
 sdf_batch.add(tri_prism);

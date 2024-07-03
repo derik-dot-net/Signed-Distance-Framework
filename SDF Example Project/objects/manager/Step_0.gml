@@ -1,7 +1,7 @@
 #region Camera Update
 
 // Angle
-var cam_angle = current_time / 100;
+var cam_angle = 160;//current_time / 100;
 
 // Position
 cam_x = target_x + lengthdir_x(cam_dist, cam_angle);
@@ -24,4 +24,10 @@ var test_anim = current_time/10;
 //box.position(sin(test_anim) * -40, 0, 10);
 //sphere.radius(7.5 + (sin(current_time/500) * 2.5));
 box.rotation(test_anim, test_anim, test_anim);
+show_debug_message("Cut Sphere Dist: " + string(cut_sphere.distance(-20, -20, 0)));
+var mouse_pointer = cut_sphere.mouse_raycast(cam, 1000, 0.01);
+if mouse_pointer != undefined {
+	mouse_sphere.position(mouse_pointer[0], mouse_pointer[1], mouse_pointer[2]);
+}
+
 #endregion

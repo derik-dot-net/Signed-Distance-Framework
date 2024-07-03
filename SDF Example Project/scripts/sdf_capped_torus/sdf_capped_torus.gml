@@ -33,6 +33,17 @@ function __sdf_capped_torus(_x, _y, _z, _angle_degrees, _radius, _thickness) : _
 		_bi_float_2 = _index_in_batch_data + _li_float_2 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_p, _pos_0);
+		var sc = [sin(_float_0), cos(_float_0)];
+		var ra = _float_1;
+		var rb = _float_2;
+		p[0] = abs(p[0]);
+		var k = (sc[1] * p[0] > sc[0] * p[1]) ? _dot([p[0], p[1]], sc) : _length([p[0], p[1]]);
+		return sqrt( _dot(p,p) + ra*ra - 2.0*ra*k ) - rb;
+	}
+	
 	#endregion
 	#region Functions
 	
@@ -40,7 +51,7 @@ function __sdf_capped_torus(_x, _y, _z, _angle_degrees, _radius, _thickness) : _
 		_set_pos(0, _x, _y, _z);
 	}
 	angle_degrees = function(_angle_degrees) {
-		_set_float(0, _angle_degrees);	
+		_set_float(0, degtorad(_angle_degrees));	
 	}
 	radius = function(_radius) {
 		_set_float(1, _radius);	

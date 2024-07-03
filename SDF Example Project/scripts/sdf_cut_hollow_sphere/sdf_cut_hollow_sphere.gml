@@ -33,6 +33,17 @@ function __sdf_cut_hollow_sphere(_x, _y, _z, _radius, _cut_off_amt, _thickness) 
 		_bi_float_2 = _index_in_batch_data + _li_float_2 + 1;	
 	}
 	
+	//float sdf_cut_hollow_sphere( vec3 p, float r, float h, float t ) {
+	//shape_dist = sdf_cut_hollow_sphere(shape_p - pos_0, float_0, float_1, float_2);
+	// Distance Function
+	_get_dist = function(_p) {
+		//var p = _sub(_p, 
+		//float w = sqrt(r*r-h*h);
+		//vec2 q = vec2( length(p.xz), p.y );
+		//return ((h*q.x<w*q.y) ? length(q-vec2(w,h)) : 
+		//                        abs(length(q)-r) ) - t;
+	}
+	
 	#endregion
 	#region Functions
 	

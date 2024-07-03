@@ -28,6 +28,19 @@ function __sdf_cut_sphere(_x, _y, _z, _radius, _cut_off_amt) : _sdf_shape() cons
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 		_bi_float_1 = _index_in_batch_data + _li_float_1 + 1;	
 	}
+
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_p, _pos_0);
+		var r = _float_0;
+		var h = _float_1;
+		var w = sqrt(r*r-h*h);
+		var q = [_length([p[0], p[2]]), p[1]];
+		var s = max( (h-r)*q[0]*q[0]+w*w*(h+r-2.0*q[1]), h*q[0]-w*q[1]);
+		var ext = (q[0]<w) ? h - q[1]  : _length(_sub(q, [w,h]));
+		var result = (s<0.0) ? _length(q)-r : ext;
+						return result;
+	}
 	
 	#endregion
 	#region Functions

@@ -28,6 +28,12 @@ function __sdf_torus(_x, _y, _z, _radius, _thickness) : _sdf_shape() constructor
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 		_bi_float_1 = _index_in_batch_data + _li_float_1 + 1;	
 	}
+		
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_p, _pos_0);
+		return _length([_length([p[0], p[2]]) - _float_0, p[1]]) - _float_1; 
+	}
 	
 	#endregion
 	#region Functions

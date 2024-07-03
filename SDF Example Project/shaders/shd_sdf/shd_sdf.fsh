@@ -291,11 +291,7 @@ float sdf_link( vec3 p, float le, float r1, float r2 ) {
 
 // Cone
 float sdf_cone( vec3 p, vec2 c, float h ) {
-	// c is the sin/cos of the angle, h is height
-	// Alternatively pass q instead of (c,h),
-	// which is the point at the base in 2D
 	vec2 q = h*vec2(c.x/c.y,-1.0);
-    
 	vec2 w = vec2( length(p.xz), p.y );
 	vec2 a = w - q*clamp( dot(w,q)/dot(q,q), 0.0, 1.0 );
 	vec2 b = w - q*vec2( clamp( w.x/q.x, 0.0, 1.0 ), 1.0 );
@@ -326,7 +322,6 @@ float sdf_round_cone(vec3 p, vec3 a, vec3 b, float r1, float r2) {
 
 // Plane
 float sdf_plane( vec3 p, vec3 n, float h ) {
-	// n must be normalized
 	return dot(p,n) + h;
 }
 
@@ -1089,7 +1084,7 @@ void main() {
 	// Ray Origin and Ray Direction
 	vec3 ro;
 	vec3 rd; 
-	if (proj_mat[3].w == 1.0) { // Orthographic
+	if (proj_mat[3].w != 0.0) { // Orthographic
 		ro = cam_pos +
 		vec3(view_mat[0].x, view_mat[1].x, view_mat[2].x) * -v_vScreenPos.x / proj_mat[0].x +
 		vec3(view_mat[0].y, view_mat[1].y, view_mat[2].y) * -v_vScreenPos.y / proj_mat[1].y;

@@ -24,6 +24,11 @@ function __sdf_sphere(_x, _y, _z, _radius) : _sdf_shape() constructor {
 		_bi_pos_0 = _index_in_batch_data + _li_pos_0 + 1;
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 	}
+
+	// Distance Function
+	_get_dist = function(_p) {
+		return _length(_sub(_p, _pos_0)) - _float_0;
+	}
 	
 	#endregion
 	#region Functions
@@ -34,7 +39,7 @@ function __sdf_sphere(_x, _y, _z, _radius) : _sdf_shape() constructor {
 	radius = function(_radius) {
 		_set_float(0, _radius);	
 	}
-	
+
 	#endregion	
 	
 }

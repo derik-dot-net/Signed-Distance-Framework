@@ -28,6 +28,17 @@ function __sdf_solid_angle(_x, _y, _z, _angle_degrees, _radius) : _sdf_shape() c
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 		_bi_float_1 = _index_in_batch_data + _li_float_1 + 1;	
 	}
+
+	// Distance Function
+	_get_dist = function(_p) {
+		var pos = _sub(_p, _pos_0);
+		var c = [sin(_float_0), cos(_float_0)];
+		var ra = _float_1;
+		var p = [_length([pos[0], pos[2]]), pos[1]];
+		var l = _length(p) - ra;
+		var m = _length(_sub(p, _mul(c, clamp(_dot(p,c),0.0,ra))));
+		return max(l, m*sign(c[1]*p[0]-c[0]*p[1]));
+	}
 	
 	#endregion
 	#region Functions

@@ -1,7 +1,7 @@
-function sdf_triangle_prism(_x, _y, _z, _width, _height) {
-	return new __sdf_triangle_prism(_x, _y, _z, _width, _height);
+function sdf_tri_prism(_x, _y, _z, _width, _height) {
+	return new __sdf_tri_prism(_x, _y, _z, _width, _height);
 }
-function __sdf_triangle_prism(_x, _y, _z, _width, _height) : _sdf_shape() constructor {
+function __sdf_tri_prism(_x, _y, _z, _width, _height) : _sdf_shape() constructor {
 
 	#region (Internal)
 	
@@ -29,6 +29,14 @@ function __sdf_triangle_prism(_x, _y, _z, _width, _height) : _sdf_shape() constr
 		_bi_float_1 = _index_in_batch_data + _li_float_1 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_p, _pos_0); 
+		var h = [_float_0, _float_1];
+		var q = _abs(p);
+		return max(q[2] - h[1], max(q[0]*0.866025+p[1]*0.5, -p[1])-h[0]*0.5);
+	}
+
 	#endregion
 	#region Functions
 	

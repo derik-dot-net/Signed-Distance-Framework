@@ -29,6 +29,18 @@ function __sdf_capsule(_x1, _y1, _z1, _x2, _y2, _z2, _radius) : _sdf_shape() con
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _p;
+		var a = _pos_0;
+		var b = _pos_1;
+		var r = _float_0
+		var pa = _sub(p, a);
+		var ba = _sub(b, a);
+		var h = clamp(_dot(pa, ba) /_dot(ba, ba), 0.0, 1.0);
+		return _length(_sub(pa, _mul(ba, h))) - r;
+	}
+
 	#endregion
 	#region Functions
 	

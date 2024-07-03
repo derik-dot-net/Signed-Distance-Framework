@@ -29,6 +29,16 @@ function __sdf_box_frame(_x, _y, _z, _x_scale, _y_scale, _z_scale, _thickness) :
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_abs(_sub(_p, _pos_0)), _scale_0);
+		var q = _sub(_abs(_add(p, _float_0)), _float_0);
+		return min(min(
+		_length(_max([p[0], q[1], q[2]], 0.0)) + min(max(p[0], max(q[1], q[2])), 0.0),
+		_length(_max([q[0], p[1], q[2]], 0.0)) + min(max(q[0], max(p[1], q[2])), 0.0)),
+		_length(_max([q[0], q[1], p[2]], 0.0)) + min(max(q[0], max(q[1], p[2])), 0.0));
+	}
+	
 	#endregion
 	#region Functions
 	

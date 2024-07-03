@@ -33,6 +33,31 @@ function __sdf_round_cone(_x1, _y1, _z1, _x2, _y2, _z2, _radius_1, _radius_2) : 
 		_bi_float_1 = _index_in_batch_data + _li_float_1 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _p;
+		var a = _pos_0;
+		var b = _pos_1;
+		var r1 = _float_0;
+		var r2 = _float_1;
+		
+		var ba = _sub(b, a);
+		var l2 = _dot(ba,ba);
+		var rr = r1 - r2;
+		var a2 = l2 - rr*rr;
+		var il2 = 1.0/l2;
+		var pa = _sub(p, a);
+		var _y = _dot(pa,ba);
+		var z = _y - l2;
+		var x2 = _dot2( _sub(_mul(pa, l2), _mul(ba, _y)));
+		var y2 = _y*_y*l2;
+		var z2 = z*z*l2;
+		var k = sign(rr)*rr*rr*x2;
+		if( sign(z)*a2*z2>k ) return  (sqrt(x2 + z2)        *il2 - r2);
+		if( sign(_y)*a2*y2<k ) return  (sqrt(x2 + y2)        *il2 - r1);
+		                    return (sqrt(x2*a2*il2)+_y*rr)*il2 - r1;
+	}
+
 	#endregion
 	#region Functions
 	

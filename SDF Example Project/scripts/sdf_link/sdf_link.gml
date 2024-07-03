@@ -33,6 +33,16 @@ function __sdf_link(_x, _y, _z, _length, _radius, _thickness) : _sdf_shape() con
 		_bi_float_2 = _index_in_batch_data + _li_float_2 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_p, _pos_0);
+		var le = _float_0;
+		var r1 = _float_1;
+		var r2 = _float_2;
+		var q = [p[0], max(abs(p[1]) - le, 0.0), p[2]];
+		return _length([_length([q[0], q[1]]) - r1, q[2]]) - r2;
+	}
+	
 	#endregion
 	#region Functions
 	
