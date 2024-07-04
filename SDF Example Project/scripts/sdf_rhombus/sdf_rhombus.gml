@@ -29,6 +29,19 @@ function __sdf_rhombus(_x, _y, _z, _x_scale, _y_scale, _z_scale, _rounding) : _s
 		_bi_float_0 = _index_in_batch_data + _li_float_0 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _abs(_sub(_p, _pos_0));
+		var la = _scale_0[0];
+		var lb = _scale_0[1];
+		var h = _scale_0[2];
+		var ra = _float_0;
+		var b = [la,lb];
+		var f = clamp( (_ndot(b,_sub(b, _mul([p[0], p[2]], 2.0))))/_dot(b,b), -1.0, 1.0 );
+		var q = [_length(_sub([p[0], p[2]],_mul(_mul(b, 0.5), [1.0-f,1.0+f])))*sign(p[0]*b[1]+p[2]*b[0]-b[0]*b[1])-ra, p[1]-h];
+		return min(max(q[0],q[1]),0.0) + _length(_max(q,0.0));
+	}
+	
 	#endregion
 	#region Functions
 	

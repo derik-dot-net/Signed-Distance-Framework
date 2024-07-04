@@ -33,6 +33,21 @@ function __sdf_death_star(_x, _y, _z, _radius_1, _radius_2, _dist) : _sdf_shape(
 		_bi_float_2 = _index_in_batch_data + _li_float_2 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var p2 = _sub(_p, _pos_0);
+		var ra = _float_0;
+		var rb = _float_1;
+		var d = _float_2;
+		var a = (ra*ra - rb*rb + d*d)/(2.0*d);
+		var b = sqrt(max(ra*ra-a*a,0.0));
+		var p = [p2[0], _length([p2[1], p2[2]])];
+		if( p[0]*b-p[1]*a > d*max(b-p[1],0.0) )
+		return _length(_sub(p,[a,b]));
+		else
+		return max( (_length(p)-ra), -(_length(_sub(p,[d,0.0]))-rb));
+	}
+	
 	#endregion
 	#region Functions
 	

@@ -25,6 +25,15 @@ function __sdf_ellipsoid(_x, _y, _z, _x_scale, _y_scale, _z_scale) : _sdf_shape(
 		_bi_scale_0 = _index_in_batch_data + _li_scale_0 + 1;	
 	}
 	
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_p, _pos_0);
+		var r = _scale_0;
+		var k0 = _length(_div(p, r));
+		var k1 = _length(_div(p, (_mul(r,r))));
+		return k0*(k0-1.0)/k1;
+	}
+	
 	#endregion
 	#region Functions
 	

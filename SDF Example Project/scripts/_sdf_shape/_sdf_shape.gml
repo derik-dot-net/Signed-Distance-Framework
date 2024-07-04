@@ -60,14 +60,18 @@ function _sdf_shape() constructor {
 	_bi_blend_str = undefined;
 	_bi_pattern = undefined;
 	
+	// Bounding Box
+	_min_bbox = undefined;
+	_max_bbox = undefined;
+	
 	// Trying to set a data type using an internal function in a way that isn't applicable
-	_not_applicable_error = function() {
+	static _not_applicable_error = function() {
 		var _error_str = "You're trying to set a data type that the shape does not use or contain, and/or does not have as an applicable modifier.";
 		show_debug_message(_sdf_error_tag_str + _error_str);
 	}
 	
 	// Modifer Local and Batch Indices
-	_create_modifer_index = function(_mode) {
+	static _create_modifer_index = function(_mode) {
 		var _new_index = array_length(_data);
 		switch(_mode) {
 			case _sdf_color_0:
@@ -117,7 +121,7 @@ function _sdf_shape() constructor {
 			break;	
 		}
 	}	
-	_update_modifer_indices = function() {
+	static _update_modifer_indices = function() {
 		if _li_color_0 != undefined {
 			_bi_color_0 =  _index_in_batch_data + _li_color_0 + 1;
 		}
@@ -136,7 +140,7 @@ function _sdf_shape() constructor {
 	}	
 	
 	// Data Setters (Handles Local and Batch Updates)
-	_set_pos = function(_index, _x, _y, _z) {
+	static _set_pos = function(_index, _x, _y, _z) {
 		switch(_index) {
 			case 0:
 				if _pos_0 = undefined {_not_applicable_error(); break;}
@@ -188,7 +192,7 @@ function _sdf_shape() constructor {
 			break;
 		}
 	}
-	_set_rotation = function(_x, _y, _z, _w) {
+	static _set_rotation = function(_x, _y, _z, _w) {
 		if _rotation = undefined {_create_modifer_index(_sdf_rotation);}
 		if _batch != undefined {
 			_batch._data[_bi_rotation + 1] = _x;
@@ -202,7 +206,7 @@ function _sdf_shape() constructor {
 		_data[_li_rotation + 3] = _z;
 		_data[_li_rotation + 4] = _w;
 	}
-	_set_float = function(_index, _f) {
+	static _set_float = function(_index, _f) {
 		switch(_index) {
 			case 0:
 				if _float_0 = undefined {_not_applicable_error(); break;}
@@ -230,7 +234,7 @@ function _sdf_shape() constructor {
 			break;
 		}
 	}
-	_set_color = function(_r, _g, _b, _linear) {
+	static _set_color = function(_r, _g, _b, _linear) {
 		if _color_0 = undefined {_create_modifer_index(_sdf_color_0);}
 		_color_0 = _linear ? [_r, _g, _b] : [_r / 255, _g / 255, _b / 255];
 		if _batch != undefined {
@@ -242,19 +246,19 @@ function _sdf_shape() constructor {
 		_data[_li_color_0 + 2] = _color_0[1];
 		_data[_li_color_0 + 3] = _color_0[2];
 	}
-	_set_blend_str = function(_f) {
+	static _set_blend_str = function(_f) {
 		if _blend_str = undefined {_create_modifer_index(_sdf_blend_str);}
 		if _batch != undefined {_batch._data[_bi_blend_str + 1] = _f;}
 		_blend_str = _f;	
 		_data[_li_blend_str + 1] = _f;
 	}
-	_set_blending_type = function(_f) {
+	static _set_blending_type = function(_f) {
 		if _blending = undefined {_create_modifer_index(_sdf_blending);}
 		if _batch != undefined {_batch._data[_bi_blending + 1] = _f;}
 		_blending = 	_f;
 		_data[_li_blending + 1] = _f;
 	}
-	_set_scale = function(_x, _y, _z) {
+	static _set_scale = function(_x, _y, _z) {
 		if _scale_0 = undefined {_not_applicable_error(); exit;}
 		_scale_0 = [_x, _y, _z];
 		if _batch != undefined {
@@ -266,7 +270,7 @@ function _sdf_shape() constructor {
 		_data[_li_scale_0 + 2] = _scale_0[1];
 		_data[_li_scale_0 + 3] = _scale_0[2];
 	}
-	_set_pattern = function(_type, _scale, _alpha) {
+	static _set_pattern = function(_type, _scale, _alpha) {
 		if _pattern = undefined {_create_modifer_index(_sdf_pattern);}
 		_pattern = _type;
 		if _batch != undefined {
@@ -279,8 +283,8 @@ function _sdf_shape() constructor {
 		_data[_li_pattern + 3] = _alpha;
 	}
 	
-	// Analogue Shader Functions
-	_normalize = function(_q) {
+	// Shader & Math Functions
+	static _normalize = function(_q) {
 		switch(array_length(_q)) {
 			case 3:
 				var mag = _magnitude(_q);
@@ -304,26 +308,33 @@ function _sdf_shape() constructor {
 			break;
 		}
 	}
-	_rotate_quaternion = function(_p, _q) {
+	static _rotate_quaternion = function(_p, _q) {
 		var _qxyz = [_q[0], _q[1], _q[2]];
 		var _p_qw = _mul(_p, _q[3]);
 		return _add(_p, _mul(_cross(_add(_cross(_p, _qxyz), _p_qw), _qxyz), 2.0));
 	}
-	_transform_vertex = function(_p, _o, _q, _s) {
+	static _transform_vertex = function(_p, _o, _q, _s) {
 		var _v = _rotate_quaternion(_mul(_p, _s), _q);
 		return _add(_v, _o);
 	}
-	_abs = function(_v) {
+	static _abs = function(_v) {
 	    return [abs(_v[0]), abs(_v[1]), abs(_v[2])];
 	}
-	_add = function(_v, _s) {
+	static _add = function(_v, _s) {
 		if is_array(_s) {
-			return [_v[0] + _s[0], _v[1] + _s[1], _v[2] + _s[2]];	
+			switch (array_length(_s)) {
+				case 2:
+					return [_v[0] + _s[0], _v[1] + _s[1]];	
+				break;
+				case 3:
+					return [_v[0] + _s[0], _v[1] + _s[1], _v[2] + _s[2]];	
+				break;
+			}
 		} else {
 			return [_v[0] + _s, _v[1] + _s, _v[2] + _s];
 		}
 	}
-	_mul = function(_v, _s) {
+	static _mul = function(_v, _s) {
 		if is_array(_s) {
 			switch(array_length(_s)) {
 				case 2:
@@ -344,14 +355,14 @@ function _sdf_shape() constructor {
 			}
 		}
 	}
-	_div = function(_v, _s) {
+	static _div = function(_v, _s) {
 		if is_array(_s) {
 			return [_v[0] / _s[0], _v[1] / _s[1], _v[2] / _s[2]];	
 		} else {
 			return [_v[0] / _s, _v[1] / _s, _v[2] / _s];
 		}
 	}
-	_sub = function(_v, _s) {
+	static _sub = function(_v, _s) {
 		if is_array(_s) {
 			switch (array_length(_s)) {
 				case 2:
@@ -362,10 +373,17 @@ function _sdf_shape() constructor {
 				break;
 			}
 		} else {
-			return [_v[0] - _s, _v[1] - _s, _v[2] - _s];
+			switch(array_length(_v)) {
+				case 2:
+					return [_v[0] - _s, _v[1] - _s];
+				break;
+				case 3:
+					return [_v[0] - _s, _v[1] - _s, _v[2] - _s];
+				break;
+			}
 		}
 	}
-	_max = function(_v, _s) {
+	static _max = function(_v, _s) {
 		if is_array(_s) {
 			switch(array_length(_s)) {	
 				case 2:
@@ -386,14 +404,14 @@ function _sdf_shape() constructor {
 			}
 		}
 	}
-	_min = function(_v, _s) {
+	static _min = function(_v, _s) {
 		if is_array(_s) {
 			return [min(_v[0], _s[0]), min(_v[1], _s[1]), min(_v[2], _s[2])];
 		} else {
 			return [min(_v[0], _s), min(_v[1], _s), min(_v[2], _s)];
 		}
 	}
-	_length = function(_v) {
+	static _length = function(_v) {
 		switch(array_length(_v)) {
 			case 2:
 				return sqrt(_v[0] * _v[0] + _v[1] * _v[1]);
@@ -403,7 +421,7 @@ function _sdf_shape() constructor {
 			break;
 		}
 	}
-	_min_component = function(_v) {
+	static _min_component = function(_v) {
 	    var _min_c = _v[0];
 	    for (var i = 0; i < 3; i++) {
 	        if (abs(_v[i]) < abs(_min_c)) {
@@ -412,7 +430,7 @@ function _sdf_shape() constructor {
 	    }
 	    return _min_c;
 	}
-	_dot = function(_v, _s) {
+	static _dot = function(_v, _s) {
 		switch (array_length(_v)) {
 			case 2:
 				return dot_product(_v[0], _v[1], _s[0], _s[1]);
@@ -422,39 +440,106 @@ function _sdf_shape() constructor {
 			break;
 		}
 	}
-	_dot2 = function(_v) {
+	static _dot2 = function(_v) {
 		return _dot(_v, _v);	
 	}
-	_magnitude = function(_v) {
+	static _ndot = function(_v, _s) {
+		return _v[0] *_s[0] - _v[1] *_s[1];
+	}
+	static _magnitude = function(_v) {
 		var _in = _v[0] * _v[0] + _v[1] * _v[1] + _v[2] * _v[2];
 		if _in = 0 or is_nan(_in) {return 0;}
 		return sqrt(_in);
 	}
-	_cross = function(_v, _s) {
+	static _cross = function(_v, _s) {
 		return [_v[1] *_s[2] - _v[2] *_s[1], _v[2] *_s[0] - _v[0]*_s[2], _v[0] *_s[1] - _v[1] *_s[0]];
 	}
+	static _clamp = function(_v, _a, _b) {
+		return [clamp(_v[0], _a[0], _b[0]), clamp(_v[1], _a[1], _b[1]), clamp(_v[2], _a[2], _b[2])];
+	}
+	static _op_revolution = function(_pos, _revolve_amt) {
+		return [_length([_pos[0], _pos[2]]) - _revolve_amt, _pos[1]];
+	}
+	
+	// Bounding Box 
+	static _build_bbox = function() {
+		var _dividend = 1;
+		var _center_pos = _pos_0;
+			if _pos_1 != undefined {
+				_center_pos = _add(_center_pos, _pos_1);	
+				_dividend++;
+			}
+			if _pos_2 != undefined {
+				_center_pos = _add(_center_pos, _pos_2);	
+				_dividend++;
+			}
+			if _pos_3 != undefined {
+				_center_pos = _add(_center_pos, _pos_3);	
+				_dividend++;
+			}
+		_center_pos = _div(_center_pos, _dividend);
+
+		var _inf = _sdf_inf;
+		var _d0_offset = [_inf, 0.0, 0.0];
+		var _d1_offset = [0.0, _inf, 0.0];
+		var _d2_offset = [0.0, 0.0, _inf];
+		var _d3_offset = [-_inf, 0.0, 0.0];
+		var _d4_offset = [0.0, -_inf, 0.0];
+		var _d5_offset = [0.0, 0.0, -_inf];
 		
+		var _d_pos_0 = _add(_center_pos, _d0_offset);
+		var _d_pos_1 = _add(_center_pos, _d1_offset);
+		var _d_pos_2 = _add(_center_pos, _d2_offset);
+		var _d_pos_3 = _add(_center_pos, _d3_offset);
+		var _d_pos_4 = _add(_center_pos, _d4_offset);
+		var _d_pos_5 = _add(_center_pos, _d5_offset);
+		var _d0 = _inf-_get_dist(_d_pos_0);
+		var _d1 = _inf-_get_dist(_d_pos_1);
+		var _d2 = _inf-_get_dist(_d_pos_2);
+		var _d3 = _inf-_get_dist(_d_pos_3);
+		var _d4 = _inf-_get_dist(_d_pos_4);
+		var _d5 = _inf-_get_dist(_d_pos_5);
+		_min_bbox = _sub(_center_pos, [_d0, _d1, _d2]);
+		_max_bbox = _add(_center_pos, [_d3, _d4, _d5]);
+		var _cushion = 2;
+		_min_bbox = _sub(_min_bbox, _cushion);
+		_max_bbox = _add(_max_bbox, _cushion);
+	}
+	
+	static _in_bbox_range = function(_v){
+		if _min_bbox = undefined or _max_bbox = undefined {
+			return true;
+		} else {
+			if (_v[0] < _max_bbox[0] and _v[1] < _max_bbox[1] and _v[2] < _max_bbox[2]) {
+				if (_v[0] > _min_bbox[0] and _v[1] > _min_bbox[1] and _v[2] > _min_bbox[2]) {
+					return true;
+				}
+			}
+		}
+		return true;
+	}
+	
 	#endregion
 	#region Common Functions
 	
 	// Set a custom color for your shape
-	color = function(_r, _g, _b, _linear) {
+	static color = function(_r, _g, _b, _linear) {
 		_set_color(_r, _g, _b, _linear);
 	}
 		
 	// Set Blending Settings
-	blending = function(_type, _strength = 0) {
+	static blending = function(_type, _strength = 0) {
 		_set_blending_type(_type);	
 		_set_blend_str(_strength);
 	}	
 	
 	// Set a pattern for your shape 
-	pattern = function(_type, _scale, _alpha) {
+	static pattern = function(_type, _scale, _alpha) {
 		_set_pattern(_type, _scale, _alpha);
 	}
 	
 	// Set Rotation for your Shape
-	rotation = function(_x_angle, _y_angle, _z_angle) {
+	static rotation = function(_x_angle, _y_angle, _z_angle) {
 	    var cr = dcos(_x_angle * 0.5);
 	    var sr = dsin(_x_angle * 0.5);
 	    var cp = dcos(_y_angle * 0.5);
@@ -469,23 +554,33 @@ function _sdf_shape() constructor {
 	}
 	
 	// Get Distance to Shape from a point 
-	distance = function(_x, _y, _z) {
+	static distance = function(_x, _y, _z) {
+		var _res;
 		var _p;
 		if is_array(_x) {
 			_p = _x;
 		} else {
 			var _p = [_x, _y, _z];
 		}
-		if _rotation != undefined {
-			var _q = _normalize(_rotation);
-			_p = _transform_vertex(_sub(_p, _pos_0), _pos_0, _q, [1, 1, 1]);							
+		if _in_bbox_range(_p) {		
+			if _rotation != undefined {
+				var _q = _normalize(_rotation);
+				_p = _transform_vertex(_sub(_p, _pos_0), _pos_0, _q, [1, 1, 1]);							
+			}
+			_res = _get_dist(_p);
+		} else {
+			if _min_bbox = undefined or _max_bbox = undefined {
+				_build_bbox();
+				_res = _get_dist(_p);
+			} else {
+				_res = _sdf_inf;
+			}
 		}
-		var _res = _get_dist(_p);
 		return _res;
 	}
 	
 	// Cast a Ray
-	raycast = function(_x1, _y1, _z1, _x2, _y2, _z2, _max_dist  = 10000, _surf_dist = 0.1) {
+	static raycast = function(_x1, _y1, _z1, _x2, _y2, _z2, _max_dist  = 10000, _surf_dist = 0.1) {
 		var _d = 0.0;
 		var _hit = false;
 		var _start, _end, _dir, _md, _sd;
@@ -504,7 +599,7 @@ function _sdf_shape() constructor {
 		}
 		while(true) {
 			var p = _add(_start, _mul(_dir, _d));
-			var  _dist= distance(p);
+			var  _dist = distance(p);
 			_d += _dist;
 			if (_dist < _sd) {
 				hit = true;
@@ -521,7 +616,7 @@ function _sdf_shape() constructor {
 	}
 	
 	// Cast a Ray from the Mouse
-	mouse_raycast = function(_camera, _max_dist = 10000, _surf_dist = 0.01) {
+	static mouse_raycast = function(_camera, _max_dist = 10000, _surf_dist = 0.01) {
 		var _2dto3d = _sdf_2d_to_3d(camera_get_view_mat(_camera), camera_get_proj_mat(_camera), mouse_x, mouse_y);
 		var _start = [_2dto3d[3],  _2dto3d[4],  _2dto3d[5]];
 		var _dir = _normalize([_2dto3d[0], _2dto3d[1], _2dto3d[2]]);

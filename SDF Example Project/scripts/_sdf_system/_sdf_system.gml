@@ -61,6 +61,7 @@
 #macro _sdf_pattern					-17
 
 #macro _sdf_error_tag_str	"SDF ERROR: "
+#macro _sdf_inf 99999
 
 // Pattern Flags
 #macro sdf_pattern_none								0

@@ -87,6 +87,93 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 		
 	}
 	
+	// Functions
+	static _normalize = function(_q) {
+		switch(array_length(_q)) {
+			case 3:
+				var mag = _magnitude(_q);
+				if (mag == 0) {
+					return self;
+				}
+				var l = 1.0 / mag;
+				if is_numeric(l){
+					return [_q[0] * l, _q[1] * l, _q[2] * l];
+				} else {
+					return [0, 0, 0];	
+				}
+			break;
+			case 4:
+				var _l = sqrt(_q[0] * _q[0] + _q[1] * _q[1] + _q[2] * _q[2] + _q[3] * _q[3]);
+				if (_l > 0.0) {
+				    return [_q[0] / _l, _q[1] / _l, _q[2] / _l, _q[3] / _l];
+				} else {
+				    return [0.0, 0.0, 0.0, 0.0];
+				}
+			break;
+		}
+	}
+	static _magnitude = function(_v) {
+		var _in = _v[0] * _v[0] + _v[1] * _v[1] + _v[2] * _v[2];
+		if _in = 0 or is_nan(_in) {return 0;}
+		return sqrt(_in);
+	}
+	static _mul = function(_v, _s) {
+		if is_array(_s) {
+			switch(array_length(_s)) {
+				case 2:
+					return [_v[0] * _s[0], _v[1] * _s[1]];	
+				break;
+				case 3:
+					return [_v[0] * _s[0], _v[1] * _s[1], _v[2] * _s[2]];	
+				break;
+			}
+		} else {
+			switch(array_length(_v)) {
+				case 2: 
+					return [_v[0] * _s, _v[1] * _s];
+				break;
+				case 3: 
+					return [_v[0] * _s, _v[1] * _s, _v[2] * _s];
+				break;
+			}
+		}
+	}
+	static _add = function(_v, _s) {
+		if is_array(_s) {
+			switch (array_length(_s)) {
+				case 2:
+					return [_v[0] + _s[0], _v[1] + _s[1]];	
+				break;
+				case 3:
+					return [_v[0] + _s[0], _v[1] + _s[1], _v[2] + _s[2]];	
+				break;
+			}
+		} else {
+			return [_v[0] + _s, _v[1] + _s, _v[2] + _s];
+		}
+	}
+	static _sub = function(_v, _s) {
+		if is_array(_s) {
+			switch (array_length(_s)) {
+				case 2:
+					return [_v[0] - _s[0], _v[1] - _s[1]];		
+				break;
+				case 3:
+					return [_v[0] - _s[0], _v[1] - _s[1], _v[2] - _s[2]];	
+				break;
+			}
+		} else {
+			switch(array_length(_v)) {
+				case 2:
+					return [_v[0] - _s, _v[1] - _s];
+				break;
+				case 3:
+					return [_v[0] - _s, _v[1] - _s, _v[2] - _s];
+				break;
+			}
+		}
+	}
+	
 	#endregion
 	#region Common Functions
 	
@@ -133,6 +220,7 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 		_sdf._batch = self;
 		_sdf._update_batch_indices();
 		_sdf._update_modifer_indices();
+		_sdf._build_bbox();
 		_build_data_array();
 	}
 	
@@ -169,7 +257,80 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	static debug = function(_enabled) {
 		debug_enabled = _enabled;	
 	}
-		
+
+	// Get Distance to Shape from a point 
+	static distance = function(_x, _y, _z, _max_dist = 10000) {
+		var _min_dist = _max_dist;
+		var _min_dist_shape = undefined;
+		var _p, _res;
+		if is_array(_x) {
+			var _p = [_x[0], _x[1], _x[2]];
+		} else {
+			var _p = [_x, _y, _z];
+		}
+		for (var i = 0; i < array_length(sdf_array); i++) {
+			var _sdf = sdf_array[i];
+			_res = _sdf.distance(_p);
+			if _res < _min_dist {
+				_min_dist = _res;
+				_min_dist_shape = _sdf;
+			}
+		}
+		return [_min_dist, _min_dist_shape];
+	}
+	
+	// Cast a Ray
+	static raycast = function(_x1, _y1, _z1, _x2, _y2, _z2, _max_dist  = 10000, _surf_dist = 0.1) {
+		var _d = 0.0;
+		var _hit = false;
+		var _start, _end, _dir, _md, _sd;
+		if is_array(_x1) {
+			_start = _x1;
+			_end = _y1;
+			_dir = _z1;
+			_md = _x2;
+			_sd = _y2;
+		} else {
+			_start = [_x1, _y1, _z1];
+			_end = [_x2, _y2, _z2];
+			_dir = _normalize(_sub(_start, _end));
+			_md = _max_dist;
+			_sd = _surf_dist;
+		}
+		var loop_amt = 0;
+		while(true) {
+			var p = _add(_start, _mul(_dir, _d));
+			var  _dist = self.distance(p, _max_dist);
+			var _travel_dist = _dist[0];
+			loop_amt++;
+			if _travel_dist = undefined {_travel_dist = _max_dist;}
+			_d += _travel_dist;
+			if (_travel_dist < _sd) {
+				hit = true;
+				array_push(p, _dist[1]);
+				return p;
+				break;
+			}
+			if (_d > _md) {
+				hit = false;
+				array_push(p, undefined);
+				return p;
+				break;
+			}
+		}
+		return undefined
+	}
+	
+	// Cast a Ray from the Mouse
+	static mouse_raycast = function(_camera, _max_dist = 10000, _surf_dist = 0.01) {
+		var _2dto3d = _sdf_2d_to_3d(camera_get_view_mat(_camera), camera_get_proj_mat(_camera), mouse_x, mouse_y);
+		var _start = [_2dto3d[3],  _2dto3d[4],  _2dto3d[5]];
+		var _dir = _normalize([_2dto3d[0], _2dto3d[1], _2dto3d[2]]);
+		var _end = _add(_start, _mul(_dir, _max_dist));
+		var _ray = raycast(_start, _end, _dir, _max_dist, _surf_dist);
+		return _ray;
+	}
+	
 	#endregion
 	
 }

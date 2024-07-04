@@ -32,6 +32,26 @@ function __sdf_egg(_x, _y, _z, _radius, _height, _roundness) : _sdf_shape() cons
 		_bi_float_1 = _index_in_batch_data + _li_float_1 + 1;	
 		_bi_float_2 = _index_in_batch_data + _li_float_2 + 1;	
 	}
+
+	// Distance Function
+	_get_dist = function(_p) {
+		var p = _sub(_p, _pos_0);
+		var a = _float_0;
+		var b = _float_1;
+		var h = _float_2;
+		var p2 = p; 
+		p2[2] = p[1]; 
+		p2[1] = p[2];
+		var _pp = _op_revolution(p2, 0.0);
+		_pp[0] = abs(_pp[0]);
+		var r = (a - b);
+		h += r;
+		var l = (h * h - r * r) / (2.0 * r);
+		var ext =   ((_pp[1]-h)*l > _pp[0]*h)
+		          ?  _length(_sub(_pp, [0.,h])) - ((a+l)-_length([h,l])) : 
+		           _length(_add(_pp,[l,0.])) - (a+l);
+		return (_pp[1] <= 0.0) ? _length(_pp) - a : ext;
+	}
 	
 	#endregion
 	#region Functions
@@ -48,6 +68,7 @@ function __sdf_egg(_x, _y, _z, _radius, _height, _roundness) : _sdf_shape() cons
 	height = function(_height) {
 		_set_float(2, _height);	
 	}
+		
 	#endregion	
 	
 }

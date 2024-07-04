@@ -78,11 +78,16 @@ plane.color(0.8, 0.8, 0.8, true);
 plane.pattern(sdf_pattern_checkered, 0.1, 0.5);
 sdf_batch.add(plane);
 
-
 // Mouse Pointer Sphere (Raycasting)
+point_batch = sdf_create_batch(sdf_default_shading);
+point_batch.fog(true, 800, 0, 0, 0, true);
+point_batch.shadows(false, 0.5);
+point_batch.ambient_occlusion(true, 0.5);
+point_batch.specular(true);
+point_batch.debug(false);
 mouse_sphere = sdf_sphere(0, 0, 0, 1);
 mouse_sphere.color(1, 0, 0, true);
-sdf_batch.add(mouse_sphere);
+point_batch.add(mouse_sphere);
 
 // Sphere
 sphere = sdf_sphere(-40, 0, 0, 5);

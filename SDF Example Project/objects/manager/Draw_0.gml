@@ -14,5 +14,6 @@ draw_clear_alpha(0, 0);
 
 // Draw SDF System
 sdf_batch.draw();
+point_batch.draw();
 
 #endregion
