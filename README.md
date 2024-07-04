@@ -1,14 +1,5 @@
 To-do (not in order of priority):
-- Non-GPU Shape Distance Tests
-  - Collision detection would likely be a requested feature.
-  - Would provide an additional benefit of a BVH structure.
-  - Distance from a given point to a specific shape or nearest shape in a batch `.point_distance(_x, _y, _z);`
-    - Returns result as an array `[hit_x, hit_y, hit_z, shape_id]`
-    - A function to retrieve the furthest shape could be useful. 
-  - World-to-World raycast for use with any shape or batch `.raycast(_x1, _y1, _z1, _x2, _y2, _z2);`
-    - Returns result as an array `[hit_x, hit_y, hit_z, shape_id]` or `undefined` for failed tests.
-  - Screen-to-World raycast for use with any shape or batch `.mouse_raycast(_mx, my);`
-    - Returns result as an array `[hit_x, hit_y, hit_z, shape_id]` or `undefined` for failed tests.
+- Additional Collision Functionality
   - Bounding Box tests as an alternative to raw distance tests
     - An optimized alternative to distance calculations
     - Test bbox overlap against specific shape or entire batch `.bbox_collision(_shape = undefined)`
