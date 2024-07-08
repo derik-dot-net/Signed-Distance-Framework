@@ -28,6 +28,16 @@ precision highp float;
 #define grid_thickness_ratio 10.0
 
 #endregion
+#region Structs
+
+struct hit_info {
+	bool did_hit;
+	vec3 normal;
+	vec3 hit_point;
+	float dist;
+};
+
+#endregion
 #region Varyings
 
 // Varyings
@@ -1076,7 +1086,7 @@ vec3 shade_steps(int n) {
 #region Main
 
 void main() {
-	
+	int stack[32];
 	// Ray Origin and Ray Direction
 	vec3 ro;
 	vec3 rd; 

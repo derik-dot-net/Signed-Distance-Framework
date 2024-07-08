@@ -1,3 +1,6 @@
+// INTERNAL //
+#region Macros 
+
 // Shapes
 #macro _sdf_sphere							0
 #macro _sdf_box								1
@@ -72,6 +75,9 @@
 #macro sdf_pattern_grid									5
 //#macro sdf_pattern_grid_filtered				6
 
+#endregion 
+#region Uniforms
+
 // Textures
 global._sdf_tex_toonramp	= sprite_get_texture(spr_sdf_toonramp, 0);
 
@@ -81,20 +87,19 @@ global._u_sdf_proj_mat			= shader_get_uniform(shd_sdf, "proj_mat");
 global._u_sdf_input_array	= shader_get_uniform(shd_sdf, "sdf_input_array");
 global._u_toonramp				= shader_get_sampler_index(shd_sdf, "tex_toonramp");
 
-// Notes
-// A "Modifier" is anything that is not a default data type to the shape.
-// In my system even color and rotation is not a default data type.
-// We keep the defaults minimal for optimization but also so that down
-// the line we can add functions that'll set values for either the entire batch,
-// or for a defined part of the batch.
+#endregion
+#region vBuffer Format
 
 // Vertex Buffer Format
 vertex_format_begin();
 vertex_format_add_position();
 global._sdf_vformat = vertex_format_end();
 
-// Converts 2D Coordinates to 3D Space
-function _sdf_2d_to_3d(V, P, _x, _y)  {
+#endregion
+#region Functions & Structs
+
+// Functions
+function _sdf_2d_to_3d(V, P, _x, _y) {
 	var mx = -(2 * (_x / window_get_width() - .5) / P[0]);
 	var my = (2 * (_y / window_get_height() - .5) / P[5]);
 	var camX = - (V[12] * V[0] + V[13] * V[1] + V[14] * V[2]);
@@ -116,3 +121,181 @@ function _sdf_2d_to_3d(V, P, _x, _y)  {
 	            camZ + mx * V[8] + my * V[9]];
 	}
 }
+function _sdf_array_swap(_array, _index1, _index2) {
+    var _tmp = _array[_index1];
+    _array[_index1] = _array[_index2];
+    _array[_index2] = _array[_index1];
+}
+
+// Structs
+function _sdf_bvh(_batch) constructor {
+	_node_array = [];
+	_shape_array = _batch.sdf_array;
+	static _build = function() {
+		
+		// Construct BVH
+		var _all_nodes = [];
+		var _all_shapes = [];
+		var _bounds = new _sdf_bbox();
+		
+		// Build a Bounding Containing all Shapes
+		for (var i = 0; i < array_length(_shape_array); i++) {
+			var _shape = _shape_array[i];
+			_bounds._grow_to_include(_shape._min_bbox, _shape._max_bbox);
+		}
+		
+		array_push(_node_array, new _sdf_bvh_node(_bounds));
+		_split(0, _shape_array, 0, array_length(_shape_array));
+		_shape_array = _all_shapes;
+
+	}
+	static _split = function(_parent_index, _shapes, _global_start, _shape_number, _depth = 0) {
+		var _max_depth = 12;
+		var _parent = _node_array[_parent_index];
+		var _size = _parent._calculate_bounds_size();
+		var _parent_cost = _node_cost(_size, _shape_number);
+		var _split_choice = _choose_split(_parent, _global_start, _shape_number);
+		var _split_axis = _split_choice[0];
+		var _split_pos = _split_choice[1];
+		var _cost = _split_choice[2];
+		if (_cost < _parent_cost && _depth < _max_depth) {
+			var _bounds_left = new _sdf_bbox();
+			var _bounds_right = new _sdf_bbox();
+			var _num_on_left = 0;
+			for (var i = _global_start; i < _global_start + _shape_number; i++) {
+				var _sdf = _shape_array[i];
+				if (_sdf._get_centre()[_split_axis] < _split_pos) {
+					_bounds_left._grow_to_include(_sdf._min_bbox, _sdf._max_bbox);
+					var _swap = _shape_array[_global_start + _num_on_left];
+					_shape_array[_global_start + _num_on_left] = _sdf;
+					_shape_array[i] = _swap;
+					_num_on_left++;
+				} else {
+					_bounds_right._grow_to_include(_sdf._min_bbox, _sdf._max_bbox);
+				}	
+			}	
+				
+			var _num_on_right = _shape_number - _num_on_left;
+			var _shape_start_left = _global_start + 0;
+			var _shape_start_right = _global_start + _num_on_left;
+			
+			// Split Parent into two children
+			array_push(_node_array, new _sdf_bvh_node(_bounds_left, _shape_start_left, 0));
+			var _child_index_left = array_length(_node_array) - 1;
+			array_push(_node_array, new _sdf_bvh_node(_bounds_right, _shape_start_right, 0));
+			var _child_index_right = _child_index_left + 1;
+			
+			_parent._start_index = _child_index_left;
+			_node_array[_parent_index] = _parent;
+			
+			// Recursively split children
+            _split(_child_index_left, _shapes, _global_start, _num_on_left, _depth + 1);
+            _split(_child_index_right, _shapes, _global_start + _num_on_left, _num_on_right, _depth + 1);
+			
+		} else {
+            // Parent is actually Leaf, assign all Shapes to it
+            _parent._start_index = _global_start;
+            _parent._shape_number = _shape_number;
+            _node_array[_parent_index] = _parent;
+		}
+	}
+	static _choose_split = function(_node, _start, _count) {
+		if (_count <= 1) return [0, 0, _sdf_inf];
+        var _best_split_pos = 0;
+        var  _best_split_axis = 0;
+        var _num_split_tests = 5;
+        var _best_cost = _sdf_inf;
+
+        // Estimate best split pos
+        for (var _axis = 0; _axis < 3; _axis++) {
+            for (var i = 0; i < _num_split_tests; i++) {
+                var _split_t = (i + 1) / (_num_split_tests + 1);
+                var _split_pos = lerp(_node._bounds_min[_axis], _node._bounds_max[_axis], _split_t);		
+                var _cost = _evaluate_split(_axis, _split_pos, _start, _count);
+                if (_cost < _best_cost) {
+                    _best_cost = _cost;
+                    _best_split_pos = _split_pos;
+                    _best_split_axis = _axis;
+                }
+            }
+        }
+		return [_best_split_axis, _best_split_pos, _best_cost]
+	}
+	static _evaluate_split = function(_split_axis, _split_pos, _start, _count) {
+		var _bounds_left = new _sdf_bbox();
+		var _bounds_right = new _sdf_bbox();
+		var _num_on_left = 0;
+		var _num_on_right = 0;
+		for (var i = _start; i < _start + _count; i++) {
+		    var _sdf = _shape_array[i];
+			var _sdf_centre = _sdf._get_centre();
+		    if (_sdf_centre[_split_axis] < _split_pos)
+		    {
+		        _bounds_left._grow_to_include(_sdf._min_bbox, _sdf._max_bbox);
+		        _num_on_left++;
+		    }
+		    else
+		    {
+		        _bounds_right._grow_to_include(_sdf._min_bbox, _sdf._max_bbox);
+		        _num_on_right++;
+		    }
+		}
+
+		var _cost_a = _node_cost(_bounds_left._size(), _num_on_left);
+		var _cost_b = _node_cost(_bounds_right._size(), _num_on_right);
+		return _cost_a + _cost_b;
+	}
+	static _node_cost = function(_size, _shape_number) {
+		var _half_area = _size[0] * _size[1] + _size[0] * _size[2] + _size[1] * _size[2];
+        return _half_area * _shape_number;	
+	}
+}
+function _sdf_bbox(_min_new  = [0, 0, 0], _max_new = [0, 0, 0]) constructor {
+	_min = _min_new;
+	_max = _max_new;
+	_has_point = false;
+	
+	static _grow_to_include = function(_min_new, _max_new) {
+		if (_has_point) {
+			_min[0] = _min_new[0] < _min[0] ? _min_new[0] : _min[0];
+            _min[1] = _min_new[1] < _min[1] ? _min_new[1] : _min[1];
+            _min[2] = _min_new[2]  < _min[2]  ? _min_new[2]  : _min[2] ;
+            _max[0] = _max_new[0] > _max[0] ? _max_new[0] : _max[0];
+            _max[1] = _max_new[1] > _max[1] ? _max_new[1] : _max[1];
+            _max[2]  = _max_new[2]  > _max[2]  ? _max_new[2]  : _max[2];
+		} else {
+			_has_point = true;
+			_min = _min_new;
+			_max = _max_new;
+		}
+	
+	}
+	static _centre = function() {	
+		return [	(_min[0] + _max[0]) / 2,
+						(_min[1] + _max[1]) / 2,
+						(_min[2] + _max[2]) / 2	];
+	}
+	static _size = function() {
+		return [	_max[0] - _min[0],
+						_max[1] - _min[1], 
+						_max[2] - _min[2]	];
+	}
+}
+function _sdf_bvh_node(_bounds, __start_index = -1, __shape_count = -1) constructor {
+	_bounds_min = _bounds._min;
+	_bounds_max = _bounds._max;
+	_start_index = __start_index;
+	_shape_count = __shape_count;
+	static _calculate_bounds_size = function() {
+		return [	_bounds_max[0] - _bounds_min[0],
+						_bounds_max[1] - _bounds_min[1], 
+						_bounds_max[2] - _bounds_min[2]	];
+	}
+	static _calculate_bounds_centre = function() {
+		return [	(_bounds_min[0] + _bounds_max[0]) / 2, 
+						(_bounds_min[1] + _bounds_max[1]) / 2, 
+						(_bounds_min[2] + _bounds_max[2]) / 2	];
+	}
+}
+
+#endregion

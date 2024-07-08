@@ -79,15 +79,23 @@ plane.pattern(sdf_pattern_checkered, 0.1, 0.5);
 sdf_batch.add(plane);
 
 // Mouse Pointer Sphere (Raycasting)
+/*
 point_batch = sdf_create_batch(sdf_default_shading);
 point_batch.fog(true, 800, 0, 0, 0, true);
 point_batch.shadows(false, 0.5);
-point_batch.ambient_occlusion(true, 0.5);
-point_batch.specular(true);
+point_batch.ambient_occlusion(false, 0.5);
+point_batch.specular(false);
 point_batch.debug(false);
 mouse_sphere = sdf_sphere(0, 0, 0, 1);
 mouse_sphere.color(1, 0, 0, true);
+bbox_frame = sdf_box_frame(0, 0, 0, 0, 0, 0, 0.1);
+bbox_min = sdf_sphere(0, 0, 0, 1);
+bbox_max = sdf_sphere(0, 0, 0, 1);
 point_batch.add(mouse_sphere);
+point_batch.add(bbox_frame);
+point_batch.add(bbox_min);
+point_batch.add(bbox_max);
+*/
 
 // Sphere
 sphere = sdf_sphere(-40, 0, 0, 5);
@@ -240,4 +248,14 @@ var col = c_rainbow(5, 240);
 egg.color(col[0], col[1], col[2]);
 sdf_batch.add(egg);
 
+// Create BVH
+var start_time = get_timer() / 1000000;
+sdf_batch.bvh();
+show_debug_message("BVH Generation time: " + string((get_timer() / 1000000) - start_time))
+show_debug_message(sdf_batch._bvh._node_array)
+
 #endregion
+
+global.bboxes_checked = 0;
+global.distances_checked = 0;
+global.bbox_successes = 0;

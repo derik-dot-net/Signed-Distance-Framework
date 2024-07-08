@@ -38,7 +38,9 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 								shadows_enabled, ambient_occlusion_enabled, fog_enabled,
 								fog_color[0], fog_color[1], fog_color[2], fog_distance, 
 								debug_enabled, specular_enabled, shadow_alpha, ao_alpha	];	
-								
+	// Bouding Volume Hierarchy
+	_bvh = undefined;
+	
 	// Build Data Array
 	static _build_data_array =  function() {
 			
@@ -174,7 +176,60 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 		}
 	}
 	
-	#endregion
+	// Ray Marching & BVH Functions
+	static _ray_march = function(_origin, _ray_dir, rng_state = 0) {
+		/*
+		// Set Up Ray
+		var _ray = new _sdf_ray();
+		_ray._origin = _origin;
+		_ray._dir = _ray_dir;
+		_ray._inv_dir = [1 / _ray.dir[0], 1 / _ray.dir[1], 1 / _ray.dir[2]];
+		// Friendly reminder:
+		// Here, the term "inverse"  refers to component-wise reciprocal, not the negation. 
+		
+		// Store Results
+		var _result = new _sdf_ray_hit_info();
+		_result._dist = _sdf_inf;
+		
+		// Loop Through Array
+		for (var i = 0; i < array_length(sdf_array); i++) {
+			
+			//Grab Shape
+			var _sdf = sdf_array[i];
+			
+			// Traverse BVH to find closest intersection with current shape
+			var _hit = _ray_shape_bvh(_ray, _result._dist, _sdf);
+			
+			// Record Closest Hit
+			if (_hit.dist < _result.dist) {
+				_result._did_hit = true;
+				_result._dist = hit.dist;
+				_result._hit_point = _add(_ray._origin, _mul(_ray._dir, _hit._dist));
+			}
+		}
+		
+		// Return Result
+		return _result;
+		*/
+	}
+	static _ray_shape_bvh = function(_ray, _ray_length, _shape) {
+		/*
+		// Store Results
+		var _result = new _sdf_shape_hit_info();
+		_result.dist = _ray_length;
+		_result.shape_index = -1;
+		
+		// Store BVH
+		var _stack = array_create(32, 0);
+		var _stack_index = 0;
+		
+		while (_stack_index > 0) {
+			
+		}
+		*/
+	}
+	
+		#endregion
 	#region Common Functions
 	
 	// Render SDF Batch
@@ -329,6 +384,12 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 		var _end = _add(_start, _mul(_dir, _max_dist));
 		var _ray = raycast(_start, _end, _dir, _max_dist, _surf_dist);
 		return _ray;
+	}
+	
+	// Generate the BVH
+	static bvh = function(_depth = 12) {
+		_bvh = new _sdf_bvh(self);
+		_bvh._build();
 	}
 	
 	#endregion

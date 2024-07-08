@@ -14,6 +14,13 @@ draw_clear_alpha(0, 0);
 
 // Draw SDF System
 sdf_batch.draw();
-point_batch.draw();
+
+//point_batch.draw();
+/*
+show_debug_message("BBoxes: " + string(global.bboxes_checked) + " Distance Functions: " + string(global.distances_checked) + " BBox Successes: " + string(global.bbox_successes))
+global.bboxes_checked = 0;
+global.distances_checked = 0;
+global.bbox_successes = 0;
+show_debug_message([tri_prism._min_bbox, tri_prism._max_bbox])
 
 #endregion
