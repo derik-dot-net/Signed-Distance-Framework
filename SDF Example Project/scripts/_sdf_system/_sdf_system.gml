@@ -121,37 +121,30 @@ function _sdf_2d_to_3d(V, P, _x, _y) {
 	            camZ + mx * V[8] + my * V[9]];
 	}
 }
-function _sdf_array_swap(_array, _index1, _index2) {
-    var _tmp = _array[_index1];
-    _array[_index1] = _array[_index2];
-    _array[_index2] = _array[_index1];
+function print() {
+    var _str = "";
+    for (var i = 0; i < argument_count; i ++) {
+        _str += string(argument[i]);
+    }
+    show_debug_message(_str);
 }
 
 // Structs
-function _sdf_bvh(_batch) constructor {
-	_node_array = [];
-	_shape_array = _batch.sdf_array;
+function _sdf_bvh(_batch, __max_depth) constructor {
+	_node_array = new _sdf_bvh_node_list();
+	_shape_array = variable_clone(_batch.sdf_array);
+	_max_depth = __max_depth;
 	static _build = function() {
-		
-		// Construct BVH
-		var _all_nodes = [];
-		var _all_shapes = [];
 		var _bounds = new _sdf_bbox();
-		
-		// Build a Bounding Containing all Shapes
 		for (var i = 0; i < array_length(_shape_array); i++) {
 			var _shape = _shape_array[i];
-			_bounds._grow_to_include(_shape._min_bbox, _shape._max_bbox);
+			_bounds._grow_to_include(_shape._bbox._min, _shape._bbox._max);
 		}
-		
-		array_push(_node_array, new _sdf_bvh_node(_bounds));
-		_split(0, _shape_array, 0, array_length(_shape_array));
-		_shape_array = _all_shapes;
-
+		_node_array._add(new _sdf_bvh_node(_bounds));
+		_split(0, _shape_array, 0, array_length(_shape_array), 0);
 	}
 	static _split = function(_parent_index, _shapes, _global_start, _shape_number, _depth = 0) {
-		var _max_depth = 12;
-		var _parent = _node_array[_parent_index];
+		var _parent = _node_array._nodes[_parent_index];
 		var _size = _parent._calculate_bounds_size();
 		var _parent_cost = _node_cost(_size, _shape_number);
 		var _split_choice = _choose_split(_parent, _global_start, _shape_number);
@@ -165,28 +158,25 @@ function _sdf_bvh(_batch) constructor {
 			for (var i = _global_start; i < _global_start + _shape_number; i++) {
 				var _sdf = _shape_array[i];
 				if (_sdf._get_centre()[_split_axis] < _split_pos) {
-					_bounds_left._grow_to_include(_sdf._min_bbox, _sdf._max_bbox);
-					var _swap = _shape_array[_global_start + _num_on_left];
-					_shape_array[_global_start + _num_on_left] = _sdf;
-					_shape_array[i] = _swap;
+					_bounds_left._grow_to_include(_sdf._bbox._min, _sdf._bbox._max);
+					var _swap = _shapes[_global_start + _num_on_left];
+					_shapes[_global_start + _num_on_left] = _sdf;
+					_shapes[i] = _swap;
 					_num_on_left++;
 				} else {
-					_bounds_right._grow_to_include(_sdf._min_bbox, _sdf._max_bbox);
+					_bounds_right._grow_to_include(_sdf._bbox._min, _sdf._bbox._max);
 				}	
-			}	
-				
+			}
 			var _num_on_right = _shape_number - _num_on_left;
 			var _shape_start_left = _global_start + 0;
 			var _shape_start_right = _global_start + _num_on_left;
 			
 			// Split Parent into two children
-			array_push(_node_array, new _sdf_bvh_node(_bounds_left, _shape_start_left, 0));
-			var _child_index_left = array_length(_node_array) - 1;
-			array_push(_node_array, new _sdf_bvh_node(_bounds_right, _shape_start_right, 0));
-			var _child_index_right = _child_index_left + 1;
+			var _child_index_left = _node_array._add(new _sdf_bvh_node(_bounds_left, _shape_start_left, 0));
+			var _child_index_right = _node_array._add(new _sdf_bvh_node(_bounds_right, _shape_start_right, 0));
 			
 			_parent._start_index = _child_index_left;
-			_node_array[_parent_index] = _parent;
+			_node_array._nodes[_parent_index] = _parent;
 			
 			// Recursively split children
             _split(_child_index_left, _shapes, _global_start, _num_on_left, _depth + 1);
@@ -196,7 +186,7 @@ function _sdf_bvh(_batch) constructor {
             // Parent is actually Leaf, assign all Shapes to it
             _parent._start_index = _global_start;
             _parent._shape_number = _shape_number;
-            _node_array[_parent_index] = _parent;
+            _node_array._nodes[_parent_index] = _parent;
 		}
 	}
 	static _choose_split = function(_node, _start, _count) {
@@ -205,8 +195,6 @@ function _sdf_bvh(_batch) constructor {
         var  _best_split_axis = 0;
         var _num_split_tests = 5;
         var _best_cost = _sdf_inf;
-
-        // Estimate best split pos
         for (var _axis = 0; _axis < 3; _axis++) {
             for (var i = 0; i < _num_split_tests; i++) {
                 var _split_t = (i + 1) / (_num_split_tests + 1);
@@ -219,7 +207,7 @@ function _sdf_bvh(_batch) constructor {
                 }
             }
         }
-		return [_best_split_axis, _best_split_pos, _best_cost]
+		return [_best_split_axis, _best_split_pos, _best_cost];
 	}
 	static _evaluate_split = function(_split_axis, _split_pos, _start, _count) {
 		var _bounds_left = new _sdf_bbox();
@@ -229,46 +217,41 @@ function _sdf_bvh(_batch) constructor {
 		for (var i = _start; i < _start + _count; i++) {
 		    var _sdf = _shape_array[i];
 			var _sdf_centre = _sdf._get_centre();
-		    if (_sdf_centre[_split_axis] < _split_pos)
-		    {
-		        _bounds_left._grow_to_include(_sdf._min_bbox, _sdf._max_bbox);
+		    if (_sdf_centre[_split_axis] < _split_pos) {
+		        _bounds_left._grow_to_include(_sdf._bbox._min, _sdf._bbox._max);
 		        _num_on_left++;
-		    }
-		    else
-		    {
-		        _bounds_right._grow_to_include(_sdf._min_bbox, _sdf._max_bbox);
+		    } else {
+		        _bounds_right._grow_to_include(_sdf._bbox._min, _sdf._bbox._max);
 		        _num_on_right++;
 		    }
 		}
-
 		var _cost_a = _node_cost(_bounds_left._size(), _num_on_left);
 		var _cost_b = _node_cost(_bounds_right._size(), _num_on_right);
 		return _cost_a + _cost_b;
 	}
 	static _node_cost = function(_size, _shape_number) {
 		var _half_area = _size[0] * _size[1] + _size[0] * _size[2] + _size[1] * _size[2];
-        return _half_area * _shape_number;	
+		print("_half_area *_shape_number: ", _half_area *_shape_number);
+        return _half_area *_shape_number;	
 	}
 }
 function _sdf_bbox(_min_new  = [0, 0, 0], _max_new = [0, 0, 0]) constructor {
-	_min = _min_new;
-	_max = _max_new;
+	_min = variable_clone(_min_new);
+	_max = variable_clone(_max_new);
 	_has_point = false;
-	
 	static _grow_to_include = function(_min_new, _max_new) {
 		if (_has_point) {
-			_min[0] = _min_new[0] < _min[0] ? _min_new[0] : _min[0];
-            _min[1] = _min_new[1] < _min[1] ? _min_new[1] : _min[1];
-            _min[2] = _min_new[2]  < _min[2]  ? _min_new[2]  : _min[2] ;
-            _max[0] = _max_new[0] > _max[0] ? _max_new[0] : _max[0];
-            _max[1] = _max_new[1] > _max[1] ? _max_new[1] : _max[1];
-            _max[2]  = _max_new[2]  > _max[2]  ? _max_new[2]  : _max[2];
+			_min[0] = min(_min_new[0], _min[0]);
+			_min[1] = min(_min_new[1], _min[1]);
+			_min[2] = min(_min_new[2], _min[2]);
+			_max[0] = max(_max_new[0], _max[0]);
+			_max[1] = max(_max_new[1], _max[1]);
+			_max[2] = max(_max_new[2], _max[2]);
 		} else {
 			_has_point = true;
-			_min = _min_new;
-			_max = _max_new;
+			_min = variable_clone(_min_new);
+			_max = variable_clone(_max_new);
 		}
-	
 	}
 	static _centre = function() {	
 		return [	(_min[0] + _max[0]) / 2,
@@ -282,8 +265,8 @@ function _sdf_bbox(_min_new  = [0, 0, 0], _max_new = [0, 0, 0]) constructor {
 	}
 }
 function _sdf_bvh_node(_bounds, __start_index = -1, __shape_count = -1) constructor {
-	_bounds_min = _bounds._min;
-	_bounds_max = _bounds._max;
+	_bounds_min = variable_clone(_bounds._min);
+	_bounds_max = variable_clone(_bounds._max);
 	_start_index = __start_index;
 	_shape_count = __shape_count;
 	static _calculate_bounds_size = function() {
@@ -297,5 +280,21 @@ function _sdf_bvh_node(_bounds, __start_index = -1, __shape_count = -1) construc
 						(_bounds_min[2] + _bounds_max[2]) / 2	];
 	}
 }
-
+function _sdf_bvh_node_list() constructor {
+	_nodes = [];
+	_index = 0;	
+	static _add = function(_node) {
+		var _node_array_len = array_length(_nodes);
+		if (_index >= _node_array_len) {
+			array_resize(_nodes, _node_array_len * 2);
+		}
+		var _node_index = _index;
+		_nodes[_index++] = _node;
+		return _node_index;
+	}
+	static _node_count = function() {
+		return _index;	
+	}	
+}
+	
 #endregion

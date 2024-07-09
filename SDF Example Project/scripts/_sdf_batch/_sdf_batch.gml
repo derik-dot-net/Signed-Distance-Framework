@@ -230,7 +230,7 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	}
 	
 		#endregion
-	#region Common Functions
+ 	#region Common Functions
 	
 	// Render SDF Batch
 	static draw = function(_view_mat = matrix_get(matrix_view), _proj_mat = matrix_get(matrix_projection)) {
@@ -387,8 +387,8 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	}
 	
 	// Generate the BVH
-	static bvh = function(_depth = 12) {
-		_bvh = new _sdf_bvh(self);
+	static bvh = function(_max_depth = 12) {
+		_bvh = new _sdf_bvh(self, _max_depth);
 		_bvh._build();
 	}
 	

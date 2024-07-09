@@ -61,11 +61,8 @@ function _sdf_shape() constructor {
 	_bi_pattern = undefined;
 	
 	// Bounding Box
-	_min_bbox = undefined;
-	_max_bbox = undefined;
-	_building_bbox = false;
-	_bbox_cushion = 10;
-	_ray = undefined;
+	_bbox = undefined;
+	_bbox_cushion = 0;
 	
 	// Trying to set a data type using an internal function in a way that isn't applicable
 	static _not_applicable_error = function() {
@@ -466,7 +463,7 @@ function _sdf_shape() constructor {
 	
 	// Bounding Box Generation
 	static _build_bbox = function() {
-		
+				
 		// Grab Infinite Macro
 		var _inf = _sdf_inf;
 		
@@ -483,27 +480,25 @@ function _sdf_shape() constructor {
 			switch(_special_case) {
 				case _sdf_plane:
 					// Infinite Planes get Max Size Box
-					_min_bbox = [-_inf, -_inf, -_inf];
-					_max_bbox = [_inf, _inf, _inf];
+					var _min_bbox = [-_inf, -_inf, -_inf];
+					var _max_bbox = [_inf, _inf, _inf];
 					// Could be optimized for planes that are axis aligned
+					_bbox = new _sdf_bbox(_min_bbox, _max_bbox);
 				break;
 				// Other shapes may also need special cases
 			}
 			
-		// End Function Early
-		return undefined;
+			// End Function Early
+			return undefined;
 		
 		}
 		
 		// Flag to let Other Functions know we're generating the bbox
 		_building_bbox = true;
 		
-		// Store the Amount of Average Positions
-		var _dividend = 1;
-		
 		// All Shapes use _pos_0
 		var _center_pos = _get_centre()
-		
+
 		// Offset Vectors for Distance Tests
 		var _d0_offset = [_inf, 0.0, 0.0];
 		var _d1_offset = [0.0, _inf, 0.0];
@@ -512,7 +507,7 @@ function _sdf_shape() constructor {
 		var _d4_offset = [0.0, -_inf, 0.0];
 		var _d5_offset = [0.0, 0.0, -_inf];
 		
-		// Positions offset from the Averaged Center of the SHape
+		// Positions offset from the Averaged Center of the Shape
 		var _d_pos_0 = _add(_center_pos, _d0_offset);
 		var _d_pos_1 = _add(_center_pos, _d1_offset);
 		var _d_pos_2 = _add(_center_pos, _d2_offset);
@@ -521,22 +516,23 @@ function _sdf_shape() constructor {
 		var _d_pos_5 = _add(_center_pos, _d5_offset);
 		
 		// Distance Checks with the Offset Distance Subtracted for Accurate Shape Size
-		var _d0 = _inf - distance(_d_pos_0, _normalize(_d3_offset));
-		var _d1 = _inf - distance(_d_pos_1, _normalize(_d4_offset));
-		var _d2 = _inf - distance(_d_pos_2, _normalize(_d5_offset));
-		var _d3 = _inf - distance(_d_pos_3, _normalize(_d0_offset));
-		var _d4 = _inf - distance(_d_pos_4, _normalize(_d1_offset));
-		var _d5 = _inf - distance(_d_pos_5, _normalize(_d2_offset));
+		var _d0 = _inf - distance(_d_pos_0);
+		var _d1 = _inf - distance(_d_pos_1);
+		var _d2 = _inf - distance(_d_pos_2);
+		var _d3 = _inf - distance(_d_pos_3);
+		var _d4 = _inf - distance(_d_pos_4);
+		var _d5 = _inf - distance(_d_pos_5);
 		
 		// Calculate bbox
-		_min_bbox = _sub(_center_pos, [_d0, _d1, _d2]);
-		_max_bbox = _add(_center_pos, [_d3, _d4, _d5]);
-		
+		var _min_bbox = _sub(_center_pos, [_d0, _d1, _d2]);
+		var _max_bbox = _add(_center_pos,  [_d3, _d4, _d5]);
 		// Add Cushion to bbox 
-		var _half_cushion = _div([_bbox_cushion, _bbox_cushion, _bbox_cushion], 2);
-		_min_bbox = _sub(_min_bbox, _half_cushion);
-		_max_bbox = _add(_max_bbox, _half_cushion);
+		//var _half_cushion = _div([_bbox_cushion, _bbox_cushion, _bbox_cushion], 2);
+		//_min_bbox = _sub(_min_bbox, _half_cushion);
+		//_max_bbox = _add(_max_bbox, _half_cushion);
 		
+		// Define Bounding Box Struct
+		_bbox = new _sdf_bbox(_min_bbox, _max_bbox);
 		// Let other Functions know we're down building the bbox
 		_building_bbox = false;
 		
@@ -589,7 +585,7 @@ function _sdf_shape() constructor {
 	}
 	
 	// Get Shape Average Center
-	static _get_centre = function() {
+	 static _get_centre = function() {
 		
 		// Number of Positions used in the Average
 		var _dividend = 1;
@@ -652,7 +648,7 @@ function _sdf_shape() constructor {
 	}
 	
 	// Get Distance to Shape from a Point 
-	static distance = function(_x, _y, _z, _inv_dir) {
+	static old_distance = function(_x, _y, _z) {
 		var _res;
 		var _p;
 		var inv_dir = _inv_dir;
@@ -664,7 +660,7 @@ function _sdf_shape() constructor {
 			inv_dir = _inv_dir;
 		}
 		if _min_bbox = undefined or _max_bbox = undefined {
-			if !_building_bbox{_build_bbox();}
+			//if !_building_bbox{_build_bbox();}
 			_res = _get_dist(_p);
 		} else {		
 			var bb_dist = _bbox_dist(_p, inv_dir);
@@ -679,6 +675,20 @@ function _sdf_shape() constructor {
 			} else {_res = bb_dist;}
 		}
 		return _res;
+	}
+	static distance = function(_x, _y, _z) {
+		var _res;
+		var _p;
+		if is_array(_x) {
+			_p = _x;
+		} else {
+			var _p = [_x, _y, _z];
+		}	
+		if _rotation != undefined {
+			var _q = _normalize(_rotation);
+			_p = _transform_vertex(_sub(_p, _pos_0), _pos_0, _q, [1, 1, 1]);
+		}
+		return _get_dist(_p);
 	}
 	
 	// Cast a Ray

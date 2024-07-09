@@ -23,7 +23,7 @@ var test_anim = current_time/10;
 //sphere.position(sin(test_anim) * 40, 0, 10);
 //box.position(sin(test_anim) * -40, 0, 10);
 //sphere.radius(7.5 + (sin(current_time/500) * 2.5));
-box.rotation(test_anim, test_anim, test_anim);
+//box.rotation(test_anim, test_anim, test_anim);
 /*
 var mouse_pointer = sdf_batch.mouse_raycast(cam, 10000, 0.01);
 if mouse_pointer != undefined {

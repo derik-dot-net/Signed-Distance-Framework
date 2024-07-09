@@ -76,7 +76,7 @@ return [color_get_red(rainbow), color_get_green(rainbow), color_get_blue(rainbow
 plane = sdf_plane(0, 0, -10, 0, 0, 1, 1);
 plane.color(0.8, 0.8, 0.8, true);
 plane.pattern(sdf_pattern_checkered, 0.1, 0.5);
-sdf_batch.add(plane);
+//sdf_batch.add(plane);
 
 // Mouse Pointer Sphere (Raycasting)
 /*
@@ -138,31 +138,31 @@ sdf_batch.add(capped_torus);
 link = sdf_link(-20, -20, 0, 4, 3, 1);
 var col = c_rainbow(5, 70);
 link.color(col[0], col[1], col[2]);
-sdf_batch.add(link);
+//sdf_batch.add(link);
 
 // Cone
 cone = sdf_cone(0, -15, 0, 35, 10);
 var col = c_rainbow(5, 70);
 cone.color(col[0], col[1], col[2]);
-sdf_batch.add(cone);
+//sdf_batch.add(cone);
 
 // Rounded Cone
 rounded_cone = sdf_round_cone(20, -15, 0, 20, -25, 0, 5, 1);
 var col = c_rainbow(5, 80);
 rounded_cone.color(col[0], col[1], col[2]);
-sdf_batch.add(rounded_cone);
+//sdf_batch.add(rounded_cone);
 
 // Hex Prism
 hex_prism = sdf_hex_prism(40, -20, 0, 5, 5);
 var col = c_rainbow(5, 90);
 hex_prism.color(col[0], col[1], col[2]);
-sdf_batch.add(hex_prism);
+//sdf_batch.add(hex_prism);
 
 // Tri Prism
 tri_prism = sdf_tri_prism(-40, 20, 5, 5, 5);
 var col = c_rainbow(5, 100);
 tri_prism.color(col[0], col[1], col[2]);
-sdf_batch.add(tri_prism);
+//sdf_batch.add(tri_prism);
 
 // Capsule
 capsule = sdf_capsule(-20, 20, 0, -20, 20, 5, 5);
@@ -246,16 +246,40 @@ sdf_batch.add(quad);
 egg = sdf_egg(40, -40, 0, 5, 5, 2.25);
 var col = c_rainbow(5, 240);
 egg.color(col[0], col[1], col[2]);
-sdf_batch.add(egg);
-
-// Create BVH
-var start_time = get_timer() / 1000000;
-sdf_batch.bvh();
-show_debug_message("BVH Generation time: " + string((get_timer() / 1000000) - start_time))
-show_debug_message(sdf_batch._bvh._node_array)
+//sdf_batch.add(egg);
 
 #endregion
 
 global.bboxes_checked = 0;
 global.distances_checked = 0;
 global.bbox_successes = 0;
+
+	// Create BVH
+	var start_time = get_timer() / 1000000;
+	sdf_batch.bvh(32);
+	show_debug_message("BVH Generation time: " + string((get_timer() / 1000000) - start_time))
+	show_debug_message(sdf_batch._bvh._node_array)	
+	bvh_node_batch = sdf_create_batch(sdf_default_shading);
+	print("node count: ", sdf_batch._bvh._node_array._index)
+	for (var i = 0; i < sdf_batch._bvh._node_array._index; i++) {
+		var _current_node = sdf_batch._bvh._node_array._nodes[i];
+		var nf_size = _current_node._calculate_bounds_size();
+		var nf_centre = _current_node._calculate_bounds_centre();
+		var nf_color =  clamp(sdf_batch._bvh._node_array._index / _current_node._shape_count - 5, 0, 1);
+		var node_frame = sdf_box_frame(nf_centre[0], nf_centre[1], nf_centre[2], nf_size[0] / 2, nf_size[1] / 2, nf_size[2] / 2, 0.1);
+		node_frame.color(1, 1-nf_color, 1-nf_color, true);
+		bvh_node_batch.add(node_frame);
+	}
+	
+	shape_bbox_batch = sdf_create_batch(sdf_default_shading);
+	for (var i = 0; i < array_length(sdf_batch.sdf_array); i++) {
+		var _sdf = sdf_batch.sdf_array[i];
+		var smin = _sdf._bbox._min;
+		var m1 = sdf_sphere(smin[0], smin[1], smin[2],1);
+		m1.color(0, 0, 1, true);
+		shape_bbox_batch.add(m1);
+		var smax = _sdf._bbox._max;
+		var m2 = sdf_sphere(smax[0], smax[1], smax[2], 1);
+		m2.color(0, 0, 1, true);
+		shape_bbox_batch.add(m2);
+	}

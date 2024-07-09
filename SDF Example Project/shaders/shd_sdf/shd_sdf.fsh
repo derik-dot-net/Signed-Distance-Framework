@@ -645,7 +645,7 @@ float get_dist(vec3 p) {
 		
 		// Store Number of Array Entries this Shape Uses
 		int shape_array_entries= int(sdf_input_array[array_pos]);
-				
+
 		// Detect End of Input Array Flag
 		if (shape_array_entries == _sdf_array_end) {
 			break;
