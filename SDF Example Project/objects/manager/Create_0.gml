@@ -79,7 +79,6 @@ plane.pattern(sdf_pattern_checkered, 0.1, 0.5);
 //sdf_batch.add(plane);
 
 // Mouse Pointer Sphere (Raycasting)
-/*
 point_batch = sdf_create_batch(sdf_default_shading);
 point_batch.fog(true, 800, 0, 0, 0, true);
 point_batch.shadows(false, 0.5);
@@ -88,14 +87,7 @@ point_batch.specular(false);
 point_batch.debug(false);
 mouse_sphere = sdf_sphere(0, 0, 0, 1);
 mouse_sphere.color(1, 0, 0, true);
-bbox_frame = sdf_box_frame(0, 0, 0, 0, 0, 0, 0.1);
-bbox_min = sdf_sphere(0, 0, 0, 1);
-bbox_max = sdf_sphere(0, 0, 0, 1);
 point_batch.add(mouse_sphere);
-point_batch.add(bbox_frame);
-point_batch.add(bbox_min);
-point_batch.add(bbox_max);
-*/
 
 // Sphere
 sphere = sdf_sphere(-40, 0, 0, 5);
@@ -248,38 +240,8 @@ var col = c_rainbow(5, 240);
 egg.color(col[0], col[1], col[2]);
 //sdf_batch.add(egg);
 
+// Create BVH
+var start_time = get_timer() / 1000000;
+sdf_batch.bvh(32, 5);
+
 #endregion
-
-global.bboxes_checked = 0;
-global.distances_checked = 0;
-global.bbox_successes = 0;
-
-	// Create BVH
-	var start_time = get_timer() / 1000000;
-	sdf_batch.bvh(32);
-	show_debug_message("BVH Generation time: " + string((get_timer() / 1000000) - start_time))
-	show_debug_message(sdf_batch._bvh._node_array)	
-	bvh_node_batch = sdf_create_batch(sdf_default_shading);
-	print("node count: ", sdf_batch._bvh._node_array._index)
-	for (var i = 0; i < sdf_batch._bvh._node_array._index; i++) {
-		var _current_node = sdf_batch._bvh._node_array._nodes[i];
-		var nf_size = _current_node._calculate_bounds_size();
-		var nf_centre = _current_node._calculate_bounds_centre();
-		var nf_color =  clamp(sdf_batch._bvh._node_array._index / _current_node._shape_count - 5, 0, 1);
-		var node_frame = sdf_box_frame(nf_centre[0], nf_centre[1], nf_centre[2], nf_size[0] / 2, nf_size[1] / 2, nf_size[2] / 2, 0.1);
-		node_frame.color(1, 1-nf_color, 1-nf_color, true);
-		bvh_node_batch.add(node_frame);
-	}
-	
-	shape_bbox_batch = sdf_create_batch(sdf_default_shading);
-	for (var i = 0; i < array_length(sdf_batch.sdf_array); i++) {
-		var _sdf = sdf_batch.sdf_array[i];
-		var smin = _sdf._bbox._min;
-		var m1 = sdf_sphere(smin[0], smin[1], smin[2],1);
-		m1.color(0, 0, 1, true);
-		shape_bbox_batch.add(m1);
-		var smax = _sdf._bbox._max;
-		var m2 = sdf_sphere(smax[0], smax[1], smax[2], 1);
-		m2.color(0, 0, 1, true);
-		shape_bbox_batch.add(m2);
-	}

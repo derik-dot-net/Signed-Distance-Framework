@@ -19,6 +19,7 @@
     {"name":"Timelines","order":6,"path":"folders/Timelines.yy",},
   ],
   "ResourceOrderSettings":[
+    {"name":"Note2","order":7,"path":"notes/Note2/Note2.yy",},
     {"name":"_sdf_shape","order":2,"path":"scripts/_sdf_shape/_sdf_shape.yy",},
     {"name":"_sdf_system","order":1,"path":"scripts/_sdf_system/_sdf_system.yy",},
     {"name":"sdf_box_frame","order":2,"path":"scripts/sdf_box_frame/sdf_box_frame.yy",},

@@ -24,8 +24,7 @@ function _sdf_shape() constructor {
 	_batch = undefined;
 	_index_in_batch = undefined;
 	_index_in_batch_data = undefined;
-	
-	
+		
 	// Local Index for Shape Data
 	_li_type = undefined;
 	_li_blending = undefined;
@@ -497,7 +496,7 @@ function _sdf_shape() constructor {
 		_building_bbox = true;
 		
 		// All Shapes use _pos_0
-		var _center_pos = _get_centre()
+		var _center_pos = _get_center()
 
 		// Offset Vectors for Distance Tests
 		var _d0_offset = [_inf, 0.0, 0.0];
@@ -585,7 +584,7 @@ function _sdf_shape() constructor {
 	}
 	
 	// Get Shape Average Center
-	 static _get_centre = function() {
+	 static _get_center = function() {
 		
 		// Number of Positions used in the Average
 		var _dividend = 1;
@@ -612,7 +611,7 @@ function _sdf_shape() constructor {
 		
 		return _center_pos;
 	}
-
+	
 	#endregion
 	#region Common Functions
 	

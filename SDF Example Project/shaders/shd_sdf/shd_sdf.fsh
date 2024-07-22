@@ -28,21 +28,34 @@ precision highp float;
 #define grid_thickness_ratio 10.0
 
 #endregion
-#region Structs
-
-struct hit_info {
-	bool did_hit;
-	vec3 normal;
-	vec3 hit_point;
-	float dist;
-};
-
-#endregion
 #region Varyings
 
 // Varyings
 varying vec2 v_vScreenPos;
 varying mat4 world_mat;
+
+#endregion
+#region Structs
+
+struct ray {
+	vec3 origin;
+	vec3 dir;
+	vec3 inv_dir;
+};
+			
+struct bvh_node {
+	vec3 bounds_min;
+	vec3 bounds_max;
+	int start_index;
+	int shape_count;
+};
+
+struct hit_info {
+	bool did_hit;
+	vec3 hit_point;
+	float dist;
+	int shape_index;
+};
 
 #endregion
 #region Uniforms
@@ -51,8 +64,10 @@ varying mat4 world_mat;
 uniform mat4 view_mat;
 uniform mat4 proj_mat;
 
-// Input Array
+// Input Arrays
 uniform float sdf_input_array[max_array_length];
+uniform bvh_node bvh_input_array[max_array_length];
+uniform float bvh_index_array[max_array_length];
 
 // Grab Render Settings from Array
 int render_style = int(sdf_input_array[0]);
@@ -617,10 +632,263 @@ float grid_filtered( in vec2 p, in vec2 ddx, in vec2 ddy ) {
 }
 
 #endregion
-#region Shape Distance Loop
+#region Shape Distance Check
 
 // Avoid Excess Calculations in Subsequent Rays 
 bool distance_only = false;
+
+// Return distance to a specific SDF in the Array
+float get_dist(vec3 p, int shape_index) {
+			
+		// Distance
+		float shape_dist = 0.0;
+			
+		#region Store Shape Data
+		
+		// All Possible Data Types
+		int sdf_type = _sdf_sphere;
+		int blending_type = _op_union;
+		int pattern_type = _pattern_none;
+		float pattern_scale = 0.1;
+		float pattern_alpha = 1.0;
+		vec3 pos_0 = vec3(0.0, 0.0, 0.0);
+		vec3 pos_1 = vec3(0.0, 0.0, 0.0);
+		vec3 pos_2 = vec3(0.0, 0.0, 0.0);
+		vec3 pos_3 = vec3(0.0, 0.0, 0.0);
+		vec3 scale_0 = vec3(0.0, 0.0, 0.0);
+		vec4 rotation = vec4(0.0, 0.0, 0.0, 1.0);
+		float float_0 = 0.0;
+		float float_1 = 0.0;
+		float float_2 = 0.0;
+		float float_3 = 0.0;
+		vec3 color_0 = vec3(0.0, 0.0, 0.0);
+		float blend_strength = 0.0;
+		vec3 rotated_p = p;
+		bool has_rotation = false;
+		
+		#endregion
+		#region Read Through Entry Data
+		
+		int j = 1; 
+		int shape_array_entries = int(sdf_input_array[shape_index]);
+		while(j < shape_array_entries) {
+			
+			// Amount to Step Forward after Reading
+			int read_steps = 0;
+			
+			// Current Positon
+			int read_pos = shape_index + j;
+			
+			// Entry Value
+			int flag_value = int(sdf_input_array[read_pos]);
+			
+			if (flag_value >= -9) {
+				if (flag_value == _sdf_type) { // SDF Type
+					sdf_type = int(sdf_input_array[read_pos + 1]);
+					read_steps = 2;
+				} else if (flag_value == _sdf_blending_type) { // Intersection Type
+					blending_type = int(sdf_input_array[read_pos + 1]);
+					read_steps = 2;
+				} else if (flag_value == _sdf_pos_0) { // Position 0
+					pos_0 = vec3(sdf_input_array[read_pos + 1], 
+											 sdf_input_array[read_pos + 2], 
+											 sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value == _sdf_pos_1) { // Position 1
+					pos_1 = vec3(sdf_input_array[read_pos + 1], 
+											 sdf_input_array[read_pos + 2], 
+											 sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value == _sdf_pos_2) { // Position 2
+					pos_2 = vec3(sdf_input_array[read_pos + 1], 
+											 sdf_input_array[read_pos + 2], 
+											 sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value == _sdf_pos_3) { // Position 3
+					pos_3 = vec3(sdf_input_array[read_pos + 1], 
+											 sdf_input_array[read_pos + 2], 
+											 sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value == _sdf_scale_0) { // Scale 0
+					scale_0 = vec3(sdf_input_array[read_pos + 1], 
+												sdf_input_array[read_pos + 2], 
+												sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				}
+			} else { 
+				if (flag_value == _sdf_rotation) { // Rotation
+					rotation = vec4(sdf_input_array[read_pos + 1], 
+												  sdf_input_array[read_pos + 2], 
+												  sdf_input_array[read_pos + 3],
+												  sdf_input_array[read_pos + 4]);
+					rotated_p = transform_vertex(p - pos_0, pos_0, normalize(rotation), vec3(1.0, 1.0, 1.0));
+					has_rotation = true;
+					read_steps = 5;
+				} else if (flag_value == _sdf_float_0) { // Float 0
+					float_0 = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				} else if (flag_value == _sdf_float_1) { // Float 1
+					float_1 = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				} else if (flag_value == _sdf_float_2) { // Float 2
+					float_2 = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				} else if (flag_value == _sdf_float_3) { // Float 3
+					float_3 = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				} else if (flag_value == _sdf_color_0) { // Color 0
+					color_0 = vec3(sdf_input_array[read_pos + 1], 
+												sdf_input_array[read_pos + 2], 
+												sdf_input_array[read_pos + 3]);
+					read_steps = 4;
+				} else if (flag_value ==  _sdf_smoothing) { // Smoothing
+					blend_strength = sdf_input_array[read_pos + 1];
+					read_steps = 2;
+				} else if (flag_value ==  _sdf_pattern) { // Patterns
+					pattern_type = int(sdf_input_array[read_pos + 1]);
+					pattern_scale = sdf_input_array[read_pos + 2];
+					pattern_alpha = sdf_input_array[read_pos + 3];
+					read_steps = 4;
+				}
+			}
+			
+			// Step Forward through Data
+			j += read_steps;
+
+		}		
+		
+		#endregion			
+		#region Shape Distance
+		
+		// Apply Rotation
+		vec3 shape_p = p;
+		if (has_rotation) {
+			shape_p = rotated_p;
+		}
+		
+		if (sdf_type <= 13) {
+			if (sdf_type <= 6) {
+				if (sdf_type <= 3) {
+					if (sdf_type == _sdf_sphere) { // Sphere
+						shape_dist = sdf_sphere(shape_p - pos_0, float_0);
+					} else if (sdf_type == _sdf_box) { // Box
+						shape_dist = sdf_box(shape_p - pos_0, scale_0);
+					} else if (sdf_type == _sdf_round_box) { // Round Box
+						shape_dist = sdf_round_box(shape_p - pos_0, scale_0, float_0);
+					} else if (sdf_type == _sdf_box_frame) { // Box Frame
+						shape_dist = sdf_box_frame(shape_p - pos_0, scale_0, float_0);
+					}
+				} else {
+					if (sdf_type == _sdf_torus) { // Torus
+						shape_dist = sdf_torus(shape_p - pos_0, vec2(float_0, float_1));
+					} else if (sdf_type == _sdf_capped_torus) { // Capped Torus
+						shape_dist = sdf_capped_torus(shape_p - pos_0, vec2(sin(float_0), cos(float_0)), float_1, float_2);
+					} else if (sdf_type == _sdf_link) { // Link
+						shape_dist = sdf_link(shape_p - pos_0, float_0, float_1, float_2);
+					} 
+				}
+			} else {
+				if (sdf_type <= 10) {
+					if (sdf_type == _sdf_cone) { // Cone
+						shape_dist = sdf_cone(shape_p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
+					} else if (sdf_type == _sdf_round_cone) { // Round Cone
+						shape_dist = sdf_round_cone(shape_p, pos_0, pos_1, float_0, float_1);
+					} else if (sdf_type == _sdf_plane) { // Plane
+						shape_dist = sdf_plane(shape_p - pos_0, normalize(pos_1), float_0);
+					} else if (sdf_type == _sdf_hex_prism) { // Hex Prism
+						shape_dist = sdf_hex_prism(shape_p - pos_0, vec2(float_0, float_1));
+					}
+				} else {
+					if (sdf_type == _sdf_tri_prism) { // Tri Prism 
+						shape_dist = sdf_tri_prism(shape_p - pos_0, vec2(float_0, float_1));	
+					} else if (sdf_type == _sdf_capsule) { // Capsule
+						shape_dist = sdf_capsule(shape_p, pos_0, pos_1, float_0);
+					} else if (sdf_type == _sdf_cylinder) { // Cylinder
+						shape_dist = sdf_cylinder(shape_p, pos_0, pos_1, float_0);
+					}
+				}
+			}
+		} else {
+			if (sdf_type <= 19) {
+				if (sdf_type <= 16) {
+					if (sdf_type == _sdf_capped_cone) { // Capped Cone
+						shape_dist = sdf_capped_cone(shape_p, pos_0, pos_1, float_0, float_1);
+					} else if (sdf_type == _sdf_solid_angle) { // Solid Angle
+						shape_dist = sdf_solid_angle(shape_p - pos_0, vec2(sin(float_0), cos(float_0)), float_1);
+					} else if (sdf_type == _sdf_cut_sphere) { // Cut Sphere
+						shape_dist = sdf_cut_sphere(shape_p - pos_0, float_0, float_1);
+					}
+				} else {
+					if (sdf_type == _sdf_cut_hollow_sphere) { // Cut Hollow Sphere
+						shape_dist = sdf_cut_hollow_sphere(shape_p - pos_0, float_0, float_1, float_2);
+					} else if (sdf_type == _sdf_death_star) { // Death Star
+						shape_dist = sdf_death_star(shape_p - pos_0, float_0, float_1, float_2);
+					} else if (sdf_type == _sdf_ellipsoid) { // Ellipsoid
+						shape_dist = sdf_ellipsoid(shape_p - pos_0, scale_0);
+					}
+				}
+			} else {
+				if (sdf_type <= 22) {
+					if (sdf_type == _sdf_rhombus) { // Rhombus
+						shape_dist = sdf_rhombus(shape_p - pos_0, scale_0.x, scale_0.y, scale_0.z, float_0);
+					} else if (sdf_type == _sdf_octahedron) { // Octahedron
+						shape_dist = sdf_octahedron(shape_p - pos_0, float_0);
+					} else if (sdf_type == _sdf_pyramid) { // Pyramid
+						shape_dist = sdf_pyramid(shape_p - pos_0, scale_0.x / 2.0, scale_0.y / 2.0, scale_0.z / 2.0);
+					}
+				} else {
+					if (sdf_type == _sdf_triangle) { // Triangle
+						shape_dist = sdf_triangle(shape_p, pos_0, pos_1, pos_2);
+					} else if (sdf_type == _sdf_quad) { // Quad
+						shape_dist = sdf_quad(shape_p, pos_0, pos_1, pos_2, pos_3);
+					} else if (sdf_type == _sdf_egg) { // Egg
+						shape_dist = sdf_egg(shape_p - pos_0, float_0, float_1, float_2);
+					}
+				}
+			}
+		}
+		//Cannot combine this, no idea why, causes it to fail to compile
+		
+		
+		#endregion
+		#region Patterns
+		
+		if (pattern_type != _pattern_none && !distance_only) {
+			if (pattern_type == _pattern_checkered) { // Checkered
+				color_0 = mix(color_0, color_0 * checkers(p * pattern_scale), pattern_alpha);
+			} else if (pattern_type == _pattern_checkered_filtered) { // Checkered (Filtered)
+				// I will come back to filtered patterns, eventually.
+				// Tried to implement without fully understanding.
+				// This currently draws the pattern but without any filtering.
+				//vec3 ddx_uvw = vec3(dFdx( (v_vScreenPos.x + 1.0) / 2.0 )); 
+				//vec3 ddy_uvw = vec3(dFdy( (v_vScreenPos.y + 1.0) / 2.0 )); 
+				//color_0 = mix(color_0, color_0 * checkers_filtered(p * pattern_scale, ddx_uvw, ddy_uvw), pattern_alpha);	
+			} else if (pattern_type == _pattern_xor) { // Xor
+				color_0 = mix(color_0, color_0 * xor_pattern(p.xy * pattern_scale * 200.0), pattern_alpha);
+			} else if (pattern_type == _pattern_xor_filtered) { // Xor (Filtered)
+				/////////////////////////////////////////////////////////////////////////////
+			} else if (pattern_type == _pattern_grid) { // Grid
+				color_0 = mix(color_0, color_0 * grid(p.xy * pattern_scale), pattern_alpha);
+			} else if (pattern_type == _pattern_grid_filtered) { // Grid (Filtered)
+				/////////////////////////////////////////////////////////////////////////////
+			}
+			
+		}
+
+		
+		#endregion
+		#region Color
+
+		nearest_color = color_0;
+	
+		#endregion
+	
+	// Result
+	return shape_dist;
+}
+
+#endregion 
+#region Shape Distance Loop
 
 // Return distance to the closest SDF in the Array
 float get_dist(vec3 p) {
