@@ -459,7 +459,7 @@ function _sdf_shape() constructor {
 	static _op_revolution = function(_pos, _revolve_amt) {
 		return [_length([_pos[0], _pos[2]]) - _revolve_amt, _pos[1]];
 	}
-	
+
 	// Bounding Box Generation
 	static _build_bbox = function() {
 				
@@ -515,20 +515,25 @@ function _sdf_shape() constructor {
 		var _d_pos_5 = _add(_center_pos, _d5_offset);
 		
 		// Distance Checks with the Offset Distance Subtracted for Accurate Shape Size
-		var _d0 = _inf - distance(_d_pos_0);
-		var _d1 = _inf - distance(_d_pos_1);
-		var _d2 = _inf - distance(_d_pos_2);
-		var _d3 = _inf - distance(_d_pos_3);
-		var _d4 = _inf - distance(_d_pos_4);
-		var _d5 = _inf - distance(_d_pos_5);
+		var _d0 = _inf - distance(_d_pos_3);
+		var _d1 = _inf - distance(_d_pos_4);
+		var _d2 = _inf - distance(_d_pos_5);
+		var _d3 = _inf - distance(_d_pos_0);
+		var _d4 = _inf - distance(_d_pos_1);
+		var _d5 = _inf - distance(_d_pos_2);
 		
 		// Calculate bbox
 		var _min_bbox = _sub(_center_pos, [_d0, _d1, _d2]);
 		var _max_bbox = _add(_center_pos,  [_d3, _d4, _d5]);
+		var _actual_min = _min(_min_bbox, _max_bbox); 
+		var _actual_max = _max(_min_bbox, _max_bbox);
+		_min_bbox = _actual_min;
+		_max_bbox = _actual_max;
+		
 		// Add Cushion to bbox 
-		//var _half_cushion = _div([_bbox_cushion, _bbox_cushion, _bbox_cushion], 2);
-		//_min_bbox = _sub(_min_bbox, _half_cushion);
-		//_max_bbox = _add(_max_bbox, _half_cushion);
+		var _half_cushion = _div([_bbox_cushion, _bbox_cushion, _bbox_cushion], 2);
+		_min_bbox = _sub(_min_bbox, _half_cushion);
+		_max_bbox = _add(_max_bbox, _half_cushion);
 		
 		// Define Bounding Box Struct
 		_bbox = new _sdf_bbox(_min_bbox, _max_bbox);
@@ -538,9 +543,8 @@ function _sdf_shape() constructor {
 	}
 		
 	// Bounding Box Distance
-	static _bbox_dist = function(_v, _inv_dir){
-		global.bboxes_checked++;
-		
+	static _old_bbox_dist = function(_v, _inv_dir){
+	
 		// Check if Bounding Box Exists
 		if _min_bbox = undefined or _max_bbox = undefined {
 			
@@ -581,6 +585,18 @@ function _sdf_shape() constructor {
 		// Force Distance Check if all else fails 
 		return -1;
 		
+	}
+	static _ray_bbox_dist = function(_ray) {
+		var _t_min = _mul(_sub(_bbox._min, _ray._origin), _ray._inv_dir);
+		var _t_max = _mul(_sub(_bbox._max, _ray._origin), _ray._inv_dir);
+		var t1 = _min(_t_min, _t_max);
+		var t2 = _max(_t_min, _t_max);
+		var tNear = max(max(t1[0], t1[1]), t1[2]);
+		var tFar = min(min(t2[0], t2[1]), t2[2]);
+
+		var hit = tFar >= tNear && tFar > 0;
+		var dst = hit ? (tNear > 0 ? tNear : 0) : _sdf_inf;
+		return dst;
 	}
 	
 	// Get Shape Average Center
@@ -647,34 +663,6 @@ function _sdf_shape() constructor {
 	}
 	
 	// Get Distance to Shape from a Point 
-	static old_distance = function(_x, _y, _z) {
-		var _res;
-		var _p;
-		var inv_dir = _inv_dir;
-		if is_array(_x) {
-			_p = _x;
-			inv_dir = _y;
-		} else {
-			var _p = [_x, _y, _z];
-			inv_dir = _inv_dir;
-		}
-		if _min_bbox = undefined or _max_bbox = undefined {
-			//if !_building_bbox{_build_bbox();}
-			_res = _get_dist(_p);
-		} else {		
-			var bb_dist = _bbox_dist(_p, inv_dir);
-			if bb_dist < 0 {	// Inside the Bounding Box
-				global.bbox_successes++;
-					if _rotation != undefined {
-					var _q = _normalize(_rotation);
-					_p = _transform_vertex(_sub(_p, _pos_0), _pos_0, _q, [1, 1, 1]);
-					}
-				global.distances_checked++;
-				_res = _get_dist(_p);
-			} else {_res = bb_dist;}
-		}
-		return _res;
-	}
 	static distance = function(_x, _y, _z) {
 		var _res;
 		var _p;

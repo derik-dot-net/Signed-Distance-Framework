@@ -225,7 +225,7 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 	
 	// Raycasting Functions
 	static _raycast = function(_origin, _dir) {
-		
+				
 		// Store Sum of Distance Traveled
 		var _dist_sum = 0;
 		
@@ -260,46 +260,46 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 		
 		// Traverse BVH
 		while (_stack_index > 0) {
-
+			
 			// Grab Current Node
 			var _node = _nodes[_stack[--_stack_index]];
 			var _is_leaf = _node._shape_count > 0;
-		
+	
 			// Node is Leaf
 			if (_is_leaf) {
 
 				// Loop Through Shapes in Node
 				for (var i = 0; i < _node._shape_count; i++) {
+					if _result._shape_index = -1 {
+						// Grab Shape
+						var _shape = _shape_list[_node._start_index + i];
 						
-					// Grab Shape
-					var _shape = _shape_list[_node._start_index + i];
-					
-					// Store a Copy of the Ray
-					var _local_ray = variable_clone(_ray);
-
-					// Get Distance From Shape
-					var _shape_dist = _shape.distance(_local_ray._origin);
-					
-					// March
-					var _did_hit_shape = undefined;
-					while(_did_hit_shape = undefined) {
-						_local_ray._origin = _add(_local_ray._origin, _mul(_local_ray._dir, _shape_dist));
-						// Succesful Hit
-						if ( _shape_dist < 0.01 and _shape_dist < _result._dist) {
-							_result._hit_point = _local_ray._origin;
-							_result._shape_index = _shape;
-							_result._dist = _shape_dist;
-							_did_hit_shape = true;
-						} else { 
-							var _new_shape_dist = _shape.distance(_local_ray._origin);
-							if _new_shape_dist > _shape_dist {
-								_did_hit_shape = false;
-							} else {
-								_shape_dist = _new_shape_dist;	
-							}
-						}	
-					}
-					
+						// Store a Copy of the Ray
+						var _local_ray = variable_clone(_ray);
+		
+						// Get Distance From Shape
+						var _shape_dist = _shape.distance(_local_ray._origin);
+					 
+						// March
+						var _did_hit_shape = undefined;
+						while(_did_hit_shape = undefined) {
+							_local_ray._origin = _add(_local_ray._origin, _mul(_local_ray._dir, _shape_dist));
+							// Succesful Hit
+							if ( _shape_dist < 0.01 and _shape_dist < _result._dist) {
+									_result._hit_point = _local_ray._origin;
+									_result._shape_index = _shape;
+									_result._dist = _shape_dist;
+									_did_hit_shape = true;
+							} else { 
+								var _new_shape_dist = _shape.distance(_local_ray._origin);
+								if _node._ray_bbox_dist(_local_ray) = _sdf_inf {
+									_did_hit_shape = false;
+								} else {
+									_shape_dist = _new_shape_dist;	
+								}
+							}	
+						}
+					} else {i = _node._shape_count; _stack_index = 0;}	
 				}	
 						
 			} else {
@@ -326,22 +326,19 @@ function _sdf_batch(shading_type = sdf_default_shading) constructor {
 				if (_dist_far < _result._dist) {_stack[_stack_index++] = _child_index_far;}
 				if (_dist_near < _result._dist) {_stack[_stack_index++] = _child_index_near;}
 				
-				// Fail Safe
-				if _stack_index > _bvh._max_depth {break;}
-				
 			}
 			
 		}	
-		
+
 		// Return Result
 		return _result;
 		
 	}
 	static _ray_bbox_dist = function(_ray, _bbox_min, _bbox_max) {
-		var tMin = _mul(_sub(_bbox_min, _ray._origin), _ray._inv_dir);
-		var tMax = _mul(_sub(_bbox_min, _ray._origin), _ray._inv_dir);
-		var t1 = _min(tMin, tMax);
-		var t2 = _max(tMin, tMax);
+		var _t_min = _mul(_sub(_bbox_min, _ray._origin), _ray._inv_dir);
+		var _t_max = _mul(_sub(_bbox_max, _ray._origin), _ray._inv_dir);
+		var t1 = _min(_t_min, _t_max);
+		var t2 = _max(_t_min, _t_max);
 		var tNear = max(max(t1[0], t1[1]), t1[2]);
 		var tFar = min(min(t2[0], t2[1]), t2[2]);
 		var hit = tFar >= tNear && tFar > 0;

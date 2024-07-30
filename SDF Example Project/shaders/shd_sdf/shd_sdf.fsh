@@ -1380,7 +1380,7 @@ void main() {
 	// Store Frag Color
 	vec3 diffuse_color = nearest_color;
 	vec3 blended_color = nearest_color_blended;
-	vec3 frag_color = nearest_color_blended; // mix(diffuse_color, blended_color, color_blending_amount) ??? 
+	vec3 frag_color = nearest_color; // mix(diffuse_color, blended_color, color_blending_amount) ??? 
 	
 	// Avoid Excess Calculations in Subsequent Rays
 	distance_only = true;

@@ -400,7 +400,7 @@ function _sdf_bvh(__batch, __max_depth = 32, __split_tests_per_node_axis = 5) co
 				
 				// Grab Node
 				var _current_node = _node_list._nodes[i];
-				
+
 				// Grab Node Size
 				var _nf_size = _current_node._calculate_bounds_size();
 				
@@ -502,7 +502,91 @@ function _sdf_bvh_node(_bounds, __start_index = -1, __shape_count = -1) construc
 						(_bounds_min[1] + _bounds_max[1]) / 2, 
 						(_bounds_min[2] + _bounds_max[2]) / 2	];
 	}
-		
+
+	// Detect if Ray Intersects with Node
+	static _mul = function(_v, _s) {
+		if is_array(_s) {
+			switch(array_length(_s)) {
+				case 2:
+					return [_v[0] * _s[0], _v[1] * _s[1]];	
+				break;
+				case 3:
+					return [_v[0] * _s[0], _v[1] * _s[1], _v[2] * _s[2]];	
+				break;
+			}
+		} else {
+			switch(array_length(_v)) {
+				case 2: 
+					return [_v[0] * _s, _v[1] * _s];
+				break;
+				case 3: 
+					return [_v[0] * _s, _v[1] * _s, _v[2] * _s];
+				break;
+			}
+		}
+	}	
+	static _sub = function(_v, _s) {
+		if is_array(_s) {
+			switch (array_length(_s)) {
+				case 2:
+					return [_v[0] - _s[0], _v[1] - _s[1]];		
+				break;
+				case 3:
+					return [_v[0] - _s[0], _v[1] - _s[1], _v[2] - _s[2]];	
+				break;
+			}
+		} else {
+			switch(array_length(_v)) {
+				case 2:
+					return [_v[0] - _s, _v[1] - _s];
+				break;
+				case 3:
+					return [_v[0] - _s, _v[1] - _s, _v[2] - _s];
+				break;
+			}
+		}
+	}	
+	static _max = function(_v, _s) {
+		if is_array(_s) {
+			switch(array_length(_s)) {	
+				case 2:
+					return [max(_v[0], _s[0]), max(_v[1], _s[1])];
+				break;
+				case 3:
+					return [max(_v[0], _s[0]), max(_v[1], _s[1]), max(_v[2], _s[2])];
+				break;
+			}
+		} else {
+			switch(array_length(_v)) {	
+				case 2:
+					return [max(_v[0], _s), max(_v[1], _s)];
+				break;
+				case 3:
+					return [max(_v[0], _s), max(_v[1], _s), max(_v[2], _s)];
+				break;
+			}
+		}
+	}
+	static _min = function(_v, _s) {
+		if is_array(_s) {
+			return [min(_v[0], _s[0]), min(_v[1], _s[1]), min(_v[2], _s[2])];
+		} else {
+			return [min(_v[0], _s), min(_v[1], _s), min(_v[2], _s)];
+		}
+	}
+	static _ray_bbox_dist = function(_ray) {
+		var _t_min = _mul(_sub(_bounds_min, _ray._origin), _ray._inv_dir);
+		var _t_max = _mul(_sub(_bounds_max, _ray._origin), _ray._inv_dir);
+		var t1 = _min(_t_min, _t_max);
+		var t2 = _max(_t_min, _t_max);
+		var tNear = max(max(t1[0], t1[1]), t1[2]);
+		var tFar = min(min(t2[0], t2[1]), t2[2]);
+
+		var hit = tFar >= tNear && tFar > 0;
+		var dst = hit ? (tNear > 0 ? tNear : 0) : _sdf_inf;
+		return dst;
+	}
+	
 }
 
 // BVH Node List Struct

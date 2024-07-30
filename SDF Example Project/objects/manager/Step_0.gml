@@ -1,7 +1,7 @@
 #region Camera Update
 
 // Angle
-//var cam_angle = 180+45//current_time / 100;
+//var cam_angle = 180//current_time / 100;
 var cam_angle =	current_time / 100;
 
 // Position
@@ -36,3 +36,4 @@ if mouse_pointer != undefined {
 }
 
 #endregion
+/*
